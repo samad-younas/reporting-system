@@ -1,6 +1,8 @@
 export interface ReportCategory {
   id: number;
   name: string;
+  allowedRoles?: string[];
+  allowedLocations?: string[];
 }
 
 export interface ReportParameterOption {
@@ -13,7 +15,7 @@ export interface ReportParameter {
   name: string;
   label: string;
   type: "text" | "date" | "select" | "multiselect";
-  required: boolean;
+  required?: boolean;
   options?: ReportParameterOption[];
 }
 
@@ -22,7 +24,10 @@ export interface Report {
   name: string;
   description: string;
   categoryId: number;
-  type: string;
+  type: "table" | "pdf";
   parameters: ReportParameter[];
-  result: any[];
+  result: Record<string, any>[];
+  rptFile?: string;
+  allowedRoles?: string[];
+  allowedLocations?: string[];
 }
