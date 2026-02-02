@@ -24,6 +24,7 @@ export interface Report {
   type: "table" | "pdf";
   parameters: ReportParameter[];
   result: Record<string, any>[];
+  rptFile?: string;
   allowedRoles?: string[];
   allowedLocations?: string[];
 }
@@ -57,6 +58,7 @@ export const reports: Report[] = [
     description: "Daily sales performance summary",
     categoryId: 1,
     type: "table",
+    rptFile: "/reports/CustomerReport.rpt",
     allowedRoles: ["admin", "manager", "sales"],
     allowedLocations: ["New York", "London"],
     parameters: [
