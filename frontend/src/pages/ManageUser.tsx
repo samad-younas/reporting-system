@@ -7,6 +7,7 @@ import UserTable, { type User } from "@/components/public/UserTable";
 
 const INITIAL_USERS: User[] = [
   {
+    full_name: "Alice Brown",
     email: "abc@example.com",
     role: "admin",
     region: "North America",
@@ -19,6 +20,7 @@ const INITIAL_USERS: User[] = [
     isInactive: false,
   },
   {
+    full_name: "David Smith",
     email: "def@example.com",
     role: "manager",
     region: "Europe",
@@ -31,6 +33,7 @@ const INITIAL_USERS: User[] = [
     isInactive: true,
   },
   {
+    full_name: "Eva Johnson",
     email: "ghi@example.com",
     role: "sales",
     region: "Europe",
@@ -43,6 +46,7 @@ const INITIAL_USERS: User[] = [
     isInactive: false,
   },
   {
+    full_name: "Frank Lee",
     email: "jkl@example.com",
     role: "user",
     region: "North America",
@@ -164,16 +168,17 @@ const ManageUser: React.FC = () => {
           initialData={
             editingUser
               ? {
+                  full_name: editingUser.full_name,
                   role: editingUser.role,
                   region: editingUser.region,
                   country: editingUser.country,
                   state: editingUser.state,
                   city: editingUser.city,
                   email: editingUser.email,
-                  canExport: editingUser.canExport,
-                  canCopy: editingUser.canCopy,
-                  isCostVisible: editingUser.isCostVisible,
-                  isInactive: editingUser.isInactive,
+                  can_export: editingUser.canExport,
+                  can_copy: editingUser.canCopy,
+                  is_cost_visible: editingUser.isCostVisible,
+                  is_inactive: editingUser.isInactive,
                 }
               : null
           }

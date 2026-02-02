@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import CountrySelector from "./CountrySelector";
 
 interface UserFormData {
+  full_name?: string;
   email: string;
   role: string;
   region: string;
@@ -10,10 +11,10 @@ interface UserFormData {
   state: string;
   city: string;
   password?: string;
-  canExport: boolean;
-  canCopy: boolean;
-  isCostVisible: boolean;
-  isInactive: boolean;
+  can_export: boolean;
+  can_copy: boolean;
+  is_cost_visible: boolean;
+  is_inactive: boolean;
 }
 
 interface UserManageFormProps {
@@ -28,15 +29,16 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = React.useState<UserFormData>({
+    full_name: "",
     role: "user",
     region: "",
     country: "",
     state: "",
     city: "",
-    canExport: false,
-    canCopy: false,
-    isCostVisible: false,
-    isInactive: false,
+    can_export: false,
+    can_copy: false,
+    is_cost_visible: false,
+    is_inactive: false,
     email: "",
     password: "",
   });
@@ -46,6 +48,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
       setFormData(initialData);
     } else {
       setFormData({
+        full_name: "",
         role: "user",
         region: "",
         country: "",
@@ -53,10 +56,10 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         city: "",
         email: "",
         password: "",
-        canExport: false,
-        canCopy: false,
-        isCostVisible: false,
-        isInactive: false,
+        can_export: false,
+        can_copy: false,
+        is_cost_visible: false,
+        is_inactive: false,
       });
     }
   }, [initialData]);
@@ -205,14 +208,14 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="canExport"
-            name="canExport"
-            checked={formData.canExport}
+            id="can_export"
+            name="can_export"
+            checked={formData.can_export}
             onChange={handleChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
           <label
-            htmlFor="canExport"
+            htmlFor="can_export"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
           >
             Can Export
@@ -221,14 +224,14 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="canCopy"
-            name="canCopy"
-            checked={formData.canCopy}
+            id="can_copy"
+            name="can_copy"
+            checked={formData.can_copy}
             onChange={handleChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
           <label
-            htmlFor="canCopy"
+            htmlFor="can_copy"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
           >
             Can Copy
@@ -237,14 +240,14 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="isCostVisible"
-            name="isCostVisible"
-            checked={formData.isCostVisible}
+            id="is_cost_visible"
+            name="is_cost_visible"
+            checked={formData.is_cost_visible}
             onChange={handleChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
           <label
-            htmlFor="isCostVisible"
+            htmlFor="is_cost_visible"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
           >
             Is Cost Visible
@@ -253,14 +256,14 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="isInactive"
-            name="isInactive"
-            checked={formData.isInactive}
+            id="is_inactive"
+            name="is_inactive"
+            checked={formData.is_inactive}
             onChange={handleChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
           <label
-            htmlFor="isInactive"
+            htmlFor="is_inactive"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
           >
             Is Inactive

@@ -25,6 +25,7 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 
 export interface User {
+  full_name: string;
   email: string;
   role: string;
   region: string;
@@ -64,6 +65,7 @@ const UserTable: React.FC<UserTableProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead className="font-bold text-lg">Email</TableHead>
+              <TableHead className="font-bold text-lg">Name</TableHead>
               <TableHead className="font-bold text-lg">Location</TableHead>
               <TableHead className="font-bold text-lg">Role</TableHead>
               <TableHead className="font-bold text-lg">Can Export</TableHead>
@@ -86,6 +88,7 @@ const UserTable: React.FC<UserTableProps> = ({
               users.map((user) => (
                 <TableRow key={user.email}>
                   <TableCell className="font-medium">{user.email}</TableCell>
+                  <TableCell>{user.full_name}</TableCell>
                   <TableCell>
                     {[user.region, user.country, user.state, user.city]
                       .filter(Boolean)
