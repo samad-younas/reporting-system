@@ -6,9 +6,33 @@ import UserManageForm from "@/components/public/UserManageForm";
 import UserTable, { type User } from "@/components/public/UserTable";
 
 const INITIAL_USERS: User[] = [
-  { id: "1", name: "ABC", canExport: true, isInactive: false, isAdmin: true },
-  { id: "2", name: "DEF", canExport: true, isInactive: true, isAdmin: true },
-  { id: "3", name: "GHI", canExport: true, isInactive: false, isAdmin: true },
+  {
+    email: "abc@example.com",
+    role: "admin",
+    location: "New York",
+    canExport: true,
+    canCopy: true,
+    isCostVisible: true,
+    isInactive: false,
+  },
+  {
+    email: "def@example.com",
+    role: "manager",
+    location: "London",
+    canExport: true,
+    canCopy: false,
+    isCostVisible: false,
+    isInactive: true,
+  },
+  {
+    email: "ghi@example.com",
+    role: "sales",
+    location: "Paris",
+    canExport: true,
+    canCopy: true,
+    isCostVisible: false,
+    isInactive: false,
+  },
 ];
 
 const ManageUser: React.FC = () => {
@@ -20,8 +44,8 @@ const ManageUser: React.FC = () => {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchQuery.toLowerCase());
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all"
         ? true
@@ -50,7 +74,7 @@ const ManageUser: React.FC = () => {
   const handleToggleStatus = (user: User) => {
     setUsers(
       users.map((u) =>
-        u.id === user.id ? { ...u, isInactive: !u.isInactive } : u,
+        u.email === user.email ? { ...u, isInactive: !u.isInactive } : u,
       ),
     );
   };
@@ -116,11 +140,13 @@ const ManageUser: React.FC = () => {
           initialData={
             editingUser
               ? {
-                  userId: editingUser.id,
-                  userName: editingUser.name,
+                  role: editingUser.role,
+                  location: editingUser.location,
+                  email: editingUser.email,
                   canExport: editingUser.canExport,
+                  canCopy: editingUser.canCopy,
+                  isCostVisible: editingUser.isCostVisible,
                   isInactive: editingUser.isInactive,
-                  isAdmin: editingUser.isAdmin,
                 }
               : null
           }
