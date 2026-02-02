@@ -1,4 +1,4 @@
-export const apiURL = "https://api.example.com/v1/";
+export const apiURL = "https://apis-reporting.cupsandcurves.com.au/";
 
 export type ReportParameterType = "text" | "date" | "select" | "multiselect";
 

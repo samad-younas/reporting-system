@@ -10,26 +10,34 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setUser } from "@/store/slices/authSlice";
+import { setUser, setToken } from "@/store/slices/authSlice";
 import loginimg from "@/assets/login-illustration.svg";
+import { useSubmit } from "@/hooks/useSubmit";
+import { toast } from "sonner";
 
 const Login: React.FC = () => {
+  const { isPending, mutateAsync } = useSubmit({
+    method: "POST",
+    endpoint: "api/login",
+    isAuth: false,
+  });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Logging in with", { username, password });
-    dispatch(
-      setUser({
-        userdata: {
-          name: username || "Test User",
-        },
-      }),
-    );
-    navigate("/dashboard");
+    try {
+      const result = await mutateAsync({ username, password });
+      toast.success("Login successful");
+      dispatch(setUser({ userdata: result.user }));
+      dispatch(setToken({ token: result.token }));
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Login failed");
+    }
   };
 
   return (
@@ -79,7 +87,7 @@ const Login: React.FC = () => {
                   Password
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
                   value={password}
@@ -94,16 +102,8 @@ const Login: React.FC = () => {
                   <input
                     type="checkbox"
                     id="showPassword"
-                    onChange={(e) => {
-                      const passwordInput = document.getElementById(
-                        "password",
-                      ) as HTMLInputElement;
-                      if (e.target.checked) {
-                        passwordInput.type = "text";
-                      } else {
-                        passwordInput.type = "password";
-                      }
-                    }}
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
                     className="mr-2"
                   />
                   <label
@@ -116,8 +116,12 @@ const Login: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between mt-5">
-              <Button type="submit" className="w-full cursor-pointer">
-                Login
+              <Button
+                type="submit"
+                className={`w-full cursor-pointer ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={isPending}
+              >
+                {isPending ? "Logging in..." : "Login"}
               </Button>
             </CardFooter>
           </form>

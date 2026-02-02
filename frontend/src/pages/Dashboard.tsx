@@ -117,8 +117,8 @@ const Dashboard: React.FC = () => {
         </div>
         {user && (
           <div className="text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-            <span className="font-semibold">{user.name}</span> ({user.role} -{" "}
-            {user.location})
+            <span className="font-semibold">{user.username}</span> ({user.role}{" "}
+            - {user.location})
           </div>
         )}
       </div>

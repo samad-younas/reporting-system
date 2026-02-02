@@ -1,6 +1,8 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 const Profile: React.FC = () => {
+  const { userdata } = useSelector((state: any) => state.auth);
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header Section */}
@@ -27,13 +29,13 @@ const Profile: React.FC = () => {
         <section className="border rounded-lg p-4 md:p-6 md:w-1/2 w-full">
           <h2 className="text-lg font-semibold mb-4">User Information</h2>
           <p className="mb-2">
-            <strong>Email:</strong> abc@example.com
+            <strong>Email:</strong> {userdata?.username}
           </p>
           <p className="mb-2">
-            <strong>Location:</strong> New York
+            <strong>Location:</strong> {userdata?.location}
           </p>
           <p className="mb-2">
-            <strong>Role:</strong> Admin
+            <strong>Role:</strong> {userdata?.role}
           </p>
         </section>
         <section className="border rounded-lg p-4 md:p-6 md:w-1/2 w-full">
