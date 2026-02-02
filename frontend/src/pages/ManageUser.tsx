@@ -40,7 +40,7 @@ const INITIAL_USERS: User[] = [
     canExport: true,
     canCopy: true,
     isCostVisible: false,
-    isInactive: false,
+    isInactive: true,
   },
 ];
 
