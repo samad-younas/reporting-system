@@ -110,10 +110,10 @@ const Dashboard: React.FC = () => {
     crystalRef.current.tjsonstring = JSON.stringify({
       Customers: reportResult,
     });
-    crystalRef.current.tcode = "DEMO1";
-    crystalRef.current.tucode = "0000";
+    crystalRef.current.tcode = "CF9269";
+    crystalRef.current.tucode = "20AD";
     crystalRef.current.trptfilePath =
-      activeReport.rptFile || "/reports/CustomerReport.rpt";
+      activeReport.rptFile || "/reports/CustomerReport1.rpt";
     crystalRef.current.tDEST = "0";
     crystalRef.current.showReport();
   };

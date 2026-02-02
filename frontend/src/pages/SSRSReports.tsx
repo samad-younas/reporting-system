@@ -7,15 +7,6 @@ interface Customer {
   Town: string;
   Country: string;
 }
-
-function generateUUID() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
-    const random = (Math.random() * 16) | 0;
-    const value = char === "x" ? random : (random & 0x3) | 0x8;
-    return value.toString(16);
-  });
-}
-
 const SSRSReports: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const crystalRef = useRef(new Crystal());
@@ -23,31 +14,31 @@ const SSRSReports: React.FC = () => {
   useEffect(() => {
     setCustomers([
       {
-        Id: generateUUID(),
+        Id: "1",
         Name: "Maria Weiss",
         Town: "Berlin",
         Country: "Germany",
       },
       {
-        Id: generateUUID(),
+        Id: "2",
         Name: "Pedro Alvarez",
         Town: "México D.F.",
         Country: "Mexico",
       },
       {
-        Id: generateUUID(),
+        Id: "3",
         Name: "Anna Tóth",
         Town: "Szeged",
         Country: "Hungary",
       },
       {
-        Id: generateUUID(),
+        Id: "4",
         Name: "Jan Eriksson",
         Town: "Mannheim",
         Country: "Sweden",
       },
       {
-        Id: generateUUID(),
+        Id: "5",
         Name: "Giulia Donatelli",
         Town: "Milano",
         Country: "Italia",
@@ -57,8 +48,8 @@ const SSRSReports: React.FC = () => {
 
   const showReport = () => {
     crystalRef.current.tjsonstring = JSON.stringify({ Customers: customers });
-    crystalRef.current.tcode = "DEMO1";
-    crystalRef.current.tucode = "0000";
+    crystalRef.current.tcode = "CF9269";
+    crystalRef.current.tucode = "20AD";
     crystalRef.current.trptfilePath = "/reports/CustomerReport.rpt";
     crystalRef.current.tDEST = "0";
     crystalRef.current.showReport();

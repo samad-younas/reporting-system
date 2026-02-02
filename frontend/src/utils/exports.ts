@@ -58,7 +58,7 @@ export const reports: Report[] = [
     description: "Daily sales performance summary",
     categoryId: 1,
     type: "table",
-    rptFile: "/reports/CustomerReport.rpt",
+    rptFile: "/reports/CustomerReport1.rpt",
     allowedRoles: ["admin", "manager", "sales"],
     allowedLocations: ["New York", "London"],
     parameters: [
