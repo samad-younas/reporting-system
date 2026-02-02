@@ -27,13 +27,13 @@ const Profile: React.FC = () => {
         <section className="border rounded-lg p-4 md:p-6 md:w-1/2 w-full">
           <h2 className="text-lg font-semibold mb-4">User Information</h2>
           <p className="mb-2">
-            <strong>Name:</strong> ABC XYZ
+            <strong>Email:</strong> abc@example.com
           </p>
           <p className="mb-2">
-            <strong>Email:</strong> abc.xyz@example.com
+            <strong>Location:</strong> New York
           </p>
           <p className="mb-2">
-            <strong>Phone:</strong> one two three
+            <strong>Role:</strong> Admin
           </p>
         </section>
         <section className="border rounded-lg p-4 md:p-6 md:w-1/2 w-full">

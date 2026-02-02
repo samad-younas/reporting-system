@@ -33,6 +33,15 @@ const INITIAL_USERS: User[] = [
     isCostVisible: false,
     isInactive: false,
   },
+  {
+    email: "jkl@example.com",
+    role: "user",
+    location: "New York",
+    canExport: true,
+    canCopy: true,
+    isCostVisible: false,
+    isInactive: false,
+  },
 ];
 
 const ManageUser: React.FC = () => {
