@@ -50,7 +50,14 @@ const Dashboard: React.FC = () => {
       if (!item.allowedRoles.includes(user.role)) return false;
     }
     if (item.allowedLocations && item.allowedLocations.length > 0) {
-      if (!item.allowedLocations.includes(user.location)) return false;
+      const userLocation = user.location || user.city || "";
+      if (
+        !item.allowedLocations.includes(userLocation) &&
+        !item.allowedLocations.includes(user.city) &&
+        !item.allowedLocations.includes(user.country) &&
+        !item.allowedLocations.includes(user.region)
+      )
+        return false;
     }
     return true;
   };

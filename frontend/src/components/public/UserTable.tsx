@@ -27,7 +27,10 @@ import { MoreHorizontalIcon } from "lucide-react";
 export interface User {
   email: string;
   role: string;
-  location: string;
+  region: string;
+  country: string;
+  state: string;
+  city: string;
   canExport: boolean;
   canCopy: boolean;
   isCostVisible: boolean;
@@ -83,7 +86,11 @@ const UserTable: React.FC<UserTableProps> = ({
               users.map((user) => (
                 <TableRow key={user.email}>
                   <TableCell className="font-medium">{user.email}</TableCell>
-                  <TableCell>{user.location}</TableCell>
+                  <TableCell>
+                    {[user.region, user.country, user.state, user.city]
+                      .filter(Boolean)
+                      .join(" -> ")}
+                  </TableCell>
                   <TableCell>{user.role}</TableCell>
                   <TableCell>{user.canExport ? "Yes" : "No"}</TableCell>
                   <TableCell>{user.canCopy ? "Yes" : "No"}</TableCell>

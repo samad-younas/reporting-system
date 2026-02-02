@@ -32,7 +32,16 @@ const Profile: React.FC = () => {
             <strong>Email:</strong> {userdata?.username}
           </p>
           <p className="mb-2">
-            <strong>Location:</strong> {userdata?.location}
+            <strong>Location:</strong>{" "}
+            {userdata?.location ||
+              [
+                userdata?.region,
+                userdata?.country,
+                userdata?.state,
+                userdata?.city,
+              ]
+                .filter(Boolean)
+                .join(" -> ")}
           </p>
           <p className="mb-2">
             <strong>Role:</strong> {userdata?.role}

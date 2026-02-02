@@ -9,7 +9,10 @@ const INITIAL_USERS: User[] = [
   {
     email: "abc@example.com",
     role: "admin",
-    location: "New York",
+    region: "North America",
+    country: "United States",
+    state: "NY",
+    city: "New York",
     canExport: true,
     canCopy: true,
     isCostVisible: true,
@@ -18,7 +21,10 @@ const INITIAL_USERS: User[] = [
   {
     email: "def@example.com",
     role: "manager",
-    location: "London",
+    region: "Europe",
+    country: "United Kingdom",
+    state: "London",
+    city: "London",
     canExport: true,
     canCopy: false,
     isCostVisible: false,
@@ -27,7 +33,10 @@ const INITIAL_USERS: User[] = [
   {
     email: "ghi@example.com",
     role: "sales",
-    location: "Paris",
+    region: "Europe",
+    country: "France",
+    state: "Île-de-France",
+    city: "Paris",
     canExport: true,
     canCopy: true,
     isCostVisible: false,
@@ -36,7 +45,10 @@ const INITIAL_USERS: User[] = [
   {
     email: "jkl@example.com",
     role: "user",
-    location: "New York",
+    region: "North America",
+    country: "United States",
+    state: "NY",
+    city: "New York",
     canExport: true,
     canCopy: true,
     isCostVisible: false,
@@ -54,7 +66,10 @@ const ManageUser: React.FC = () => {
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.location.toLowerCase().includes(searchQuery.toLowerCase());
+      user.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.region.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all"
         ? true
@@ -150,7 +165,10 @@ const ManageUser: React.FC = () => {
             editingUser
               ? {
                   role: editingUser.role,
-                  location: editingUser.location,
+                  region: editingUser.region,
+                  country: editingUser.country,
+                  state: editingUser.state,
+                  city: editingUser.city,
                   email: editingUser.email,
                   canExport: editingUser.canExport,
                   canCopy: editingUser.canCopy,
