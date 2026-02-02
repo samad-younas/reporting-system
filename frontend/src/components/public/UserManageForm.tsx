@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import CountrySelector from "./CountrySelector";
 
 interface UserFormData {
   email: string;
@@ -92,18 +93,12 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <label htmlFor="location" className="text-sm font-medium leading-none">
           Location
         </label>
-        <select
-          id="location"
-          name="location"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        <CountrySelector
           value={formData.location}
-          onChange={handleChange}
-        >
-          <option value="New York">New York</option>
-          <option value="London">London</option>
-          <option value="Paris">Paris</option>
-          <option value="Tokyo">Tokyo</option>
-        </select>
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, location: value }))
+          }
+        />
       </div>
       <div className="space-y-2">
         <label

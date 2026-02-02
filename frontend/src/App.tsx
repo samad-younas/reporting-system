@@ -31,6 +31,7 @@ const App: React.FC = () => {
       }
     }
   }, [location.pathname, navigate]);
+
   const { userdata, token } = useSelector((state: any) => state.auth);
   return (
     <Suspense fallback={<LoadingSpinner />}>
