@@ -84,24 +84,42 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2 mt-4">
-        <label htmlFor="role" className="text-sm font-medium leading-none">
-          Role
-        </label>
-        <select
-          id="role"
-          name="role"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          value={formData.role}
-          onChange={handleChange}
-        >
-          <option value="admin">Admin</option>
-          <option value="manager">Manager</option>
-          <option value="sales">Sales</option>
-          <option value="user">User</option>
-        </select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2 mt-4">
+          <label htmlFor="role" className="text-sm font-medium leading-none">
+            Role
+          </label>
+          <select
+            id="role"
+            name="role"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            value={formData.role}
+            onChange={handleChange}
+          >
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="sales">Sales</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div className="space-y-2 mt-4">
+          <label
+            htmlFor="full_name"
+            className="text-sm font-medium leading-none"
+          >
+            Full Name
+          </label>
+          <input
+            type="text"
+            id="full_name"
+            name="full_name"
+            placeholder="Full Name"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            value={formData.full_name}
+            onChange={handleChange}
+          />
+        </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label htmlFor="region" className="text-sm font-medium leading-none">
