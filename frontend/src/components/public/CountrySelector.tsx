@@ -13,7 +13,10 @@ interface CountrySelectorProps {
   onChange: (value: string) => void;
 }
 
-const CountrySelector: React.FC<CountrySelectorProps> = ({ value, onChange }) => {
+const CountrySelector: React.FC<CountrySelectorProps> = ({
+  value,
+  onChange,
+}) => {
   const options = useMemo(() => countryList().getData(), []);
 
   return (
@@ -23,7 +26,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ value, onChange }) =>
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={option.label}>
             {option.label}
           </SelectItem>
         ))}
