@@ -10,13 +10,31 @@ import {
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { logOut } from "@/store/slices/authSlice";
+import { useDispatch } from "react-redux";
+import { toast } from "sonner";
+import { useSubmit } from "@/hooks/useSubmit";
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+  const { isPending, mutateAsync } = useSubmit({
+    method: "POST",
+    endpoint: "api/logout",
+    isAuth: true,
+  });
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const result = await mutateAsync({});
+    dispatch(logOut());
+    toast.success(result.message || "Logged out successfully");
+    navigate("/login");
+  };
+
   return (
     <header className="border-b px-3 md:px-4 lg:px-6 py-5 flex items-center justify-between sticky top-0 z-30 backdrop-blur-sm bg-card/95">
       <div className="flex items-center">
@@ -49,9 +67,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onClick={() => navigate("/login")}
+            onClick={handleLogout}
+            disabled={isPending}
           >
-            Logout
+            {isPending ? "Logging out..." : "Log Out"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -31,7 +31,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       const result = await mutateAsync({ username, password });
-      toast.success("Login successful");
+      toast.success(result.message || "Login successful");
       dispatch(setUser({ userdata: result.user }));
       dispatch(setToken({ token: result.token }));
       navigate("/dashboard");
