@@ -59,7 +59,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         can_export: false,
         can_copy: false,
         is_cost_visible: false,
-        is_inactive: false,
+        is_inactive: true,
       });
     }
   }, [initialData]);
