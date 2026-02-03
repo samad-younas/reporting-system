@@ -25,11 +25,10 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 
 export interface User {
-  id: string; // Keeping ID for frontend management
+  id: string;
   email: string;
-  password?: string; // Optional for display
+  password?: string;
   user_type: string;
-  location: string;
   role_id: number;
   profile: {
     full_name: string;
@@ -93,7 +92,10 @@ const UserTable: React.FC<UserTableProps> = ({
                   <TableCell className="font-medium">{user.email}</TableCell>
                   <TableCell>{user.profile.full_name}</TableCell>
                   <TableCell>{user.role_id}</TableCell>
-                  <TableCell>{user.location}</TableCell>
+                  <TableCell>
+                    {user.profile.region} - {user.profile.country} -
+                    {user.profile.state} - {user.profile.city}
+                  </TableCell>
                   <TableCell>
                     {user.profile.can_export ? "Yes" : "No"}
                   </TableCell>

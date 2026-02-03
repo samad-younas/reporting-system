@@ -12,7 +12,6 @@ const INITIAL_USERS: User[] = [
     id: "1",
     email: "abc@example.com",
     user_type: "user",
-    location: "New York",
     role_id: 1,
     profile: {
       full_name: "ABC User",
@@ -30,7 +29,6 @@ const INITIAL_USERS: User[] = [
     id: "2",
     email: "def@example.com",
     user_type: "admin",
-    location: "London",
     role_id: 2,
     profile: {
       full_name: "DEF User",
@@ -171,9 +169,7 @@ const ManageUser: React.FC = () => {
             editingUser
               ? {
                   email: editingUser.email,
-                  // password field is typically not populated on edit for security, or left blank to indicate no change
                   user_type: editingUser.user_type,
-                  location: editingUser.location,
                   role_id: editingUser.role_id,
                   profile: { ...editingUser.profile },
                 }

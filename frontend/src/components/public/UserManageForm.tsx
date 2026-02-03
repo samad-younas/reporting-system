@@ -5,7 +5,6 @@ export interface UserFormData {
   email: string;
   password?: string;
   user_type: string;
-  location: string;
   role_id: number;
   profile: {
     full_name: string;
@@ -35,7 +34,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     email: "",
     password: "",
     user_type: "user",
-    location: "",
     role_id: 2,
     profile: {
       full_name: "",
@@ -54,12 +52,10 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     if (initialData) {
       setFormData(initialData);
     } else {
-      // Reset form
       setFormData({
         email: "",
         password: "",
         user_type: "user",
-        location: "",
         role_id: 2,
         profile: {
           full_name: "",
@@ -80,7 +76,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
-    // Handle top-level fields
     if (Object.keys(formData).includes(name)) {
       setFormData((prev) => ({
         ...prev,
@@ -134,7 +129,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
             name="password"
             value={formData.password}
             onChange={handleChange}
-            required={!initialData} // Required only for new users
+            required={!initialData}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             placeholder="******"
           />
@@ -174,17 +169,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
             <option value="user">User</option>
             <option value="admin">Admin</option>
           </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Location</label>
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          />
         </div>
       </div>
 
