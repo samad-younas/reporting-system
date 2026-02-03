@@ -25,11 +25,23 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 
 export interface User {
-  id: string;
-  name: string;
-  canExport: boolean;
-  isInactive: boolean;
-  isAdmin: boolean;
+  id: string; // Keeping ID for frontend management
+  email: string;
+  password?: string; // Optional for display
+  user_type: string;
+  location: string;
+  role_id: number;
+  profile: {
+    full_name: string;
+    region: string;
+    country: string;
+    state: string;
+    city: string;
+    can_export: boolean;
+    can_copy: boolean;
+    is_cost_visible: boolean;
+    is_inactive: boolean;
+  };
 }
 
 interface UserTableProps {
@@ -57,11 +69,12 @@ const UserTable: React.FC<UserTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="font-bold text-lg">User ID</TableHead>
-              <TableHead className="font-bold text-lg">User Name</TableHead>
-              <TableHead className="font-bold text-lg">Can Export</TableHead>
+              <TableHead className="font-bold text-lg">Email</TableHead>
+              <TableHead className="font-bold text-lg">Full Name</TableHead>
+              <TableHead className="font-bold text-lg">Role ID</TableHead>
+              <TableHead className="font-bold text-lg">Location</TableHead>
+              <TableHead className="font-bold text-lg">Exports</TableHead>
               <TableHead className="font-bold text-lg">Status</TableHead>
-              <TableHead className="font-bold text-lg">Is Admin</TableHead>
               <TableHead className="text-right font-bold text-lg">
                 Actions
               </TableHead>
@@ -70,24 +83,27 @@ const UserTable: React.FC<UserTableProps> = ({
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4">
+                <TableCell colSpan={7} className="text-center py-4">
                   No users found
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.canExport ? "Yes" : "No"}</TableCell>
+                  <TableCell className="font-medium">{user.email}</TableCell>
+                  <TableCell>{user.profile.full_name}</TableCell>
+                  <TableCell>{user.role_id}</TableCell>
+                  <TableCell>{user.location}</TableCell>
+                  <TableCell>
+                    {user.profile.can_export ? "Yes" : "No"}
+                  </TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${user.isInactive ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
+                      className={`px-2 py-1 rounded-full text-xs ${user.profile.is_inactive ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
                     >
-                      {user.isInactive ? "Inactive" : "Active"}
+                      {user.profile.is_inactive ? "Inactive" : "Active"}
                     </span>
                   </TableCell>
-                  <TableCell>{user.isAdmin ? "Yes" : "No"}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -101,7 +117,7 @@ const UserTable: React.FC<UserTableProps> = ({
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onToggleStatus(user)}>
-                          {user.isInactive ? "Activate" : "Deactivate"}
+                          {user.profile.is_inactive ? "Activate" : "Deactivate"}
                         </DropdownMenuItem>
                         <DropdownMenuItem>Reset Password</DropdownMenuItem>
                         <DropdownMenuSeparator />

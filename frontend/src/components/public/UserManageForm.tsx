@@ -1,12 +1,23 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-interface UserFormData {
-  userId: string;
-  userName: string;
-  canExport: boolean;
-  isInactive: boolean;
-  isAdmin: boolean;
+export interface UserFormData {
+  email: string;
+  password?: string;
+  user_type: string;
+  location: string;
+  role_id: number;
+  profile: {
+    full_name: string;
+    region: string;
+    country: string;
+    state: string;
+    city: string;
+    can_export: boolean;
+    can_copy: boolean;
+    is_cost_visible: boolean;
+    is_inactive: boolean;
+  };
 }
 
 interface UserManageFormProps {
@@ -21,32 +32,75 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   onCancel,
 }) => {
   const [formData, setFormData] = React.useState<UserFormData>({
-    userId: "",
-    userName: "",
-    canExport: false,
-    isInactive: false,
-    isAdmin: false,
+    email: "",
+    password: "",
+    user_type: "user",
+    location: "",
+    role_id: 2,
+    profile: {
+      full_name: "",
+      region: "",
+      country: "",
+      state: "",
+      city: "",
+      can_export: false,
+      can_copy: false,
+      is_cost_visible: false,
+      is_inactive: false,
+    },
   });
 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
     } else {
+      // Reset form
       setFormData({
-        userId: "",
-        userName: "",
-        canExport: false,
-        isInactive: false,
-        isAdmin: false,
+        email: "",
+        password: "",
+        user_type: "user",
+        location: "",
+        role_id: 2,
+        profile: {
+          full_name: "",
+          region: "",
+          country: "",
+          state: "",
+          city: "",
+          can_export: false,
+          can_copy: false,
+          is_cost_visible: false,
+          is_inactive: false,
+        },
       });
     }
   }, [initialData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value, type } = e.target;
+    // Handle top-level fields
+    if (Object.keys(formData).includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "number" ? parseInt(value) : value,
+      }));
+    }
+  };
+
+  const handleProfileChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      profile: {
+        ...prev.profile,
+        [name]: type === "checkbox" ? checked : value,
+      },
     }));
   };
 
@@ -56,92 +110,175 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label
-          htmlFor="userId"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          User ID
-        </label>
-        <input
-          type="text"
-          id="userId"
-          name="userId"
-          value={formData.userId}
-          onChange={handleChange}
-          required
-          disabled={!!initialData}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Enter User ID"
-        />
-      </div>
-      <div className="space-y-2">
-        <label
-          htmlFor="userName"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          User Name
-        </label>
-        <input
-          type="text"
-          id="userName"
-          name="userName"
-          value={formData.userName}
-          onChange={handleChange}
-          required
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Enter User Name"
-        />
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 max-h-[80vh] overflow-y-auto px-1"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            placeholder="john@example.com"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Password</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required={!initialData} // Required only for new users
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            placeholder="******"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Full Name</label>
+          <input
+            type="text"
+            name="full_name"
+            value={formData.profile.full_name}
+            onChange={handleProfileChange}
+            required
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Role ID</label>
+          <input
+            type="number"
+            name="role_id"
+            value={formData.role_id}
+            onChange={handleChange}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">User Type</label>
+          <select
+            name="user_type"
+            value={formData.user_type}
+            onChange={handleChange}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-4 pt-2">
+      <div className="border-t pt-4 mt-4">
+        <h3 className="text-sm font-bold mb-3">Profile Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Region</label>
+            <input
+              type="text"
+              name="region"
+              value={formData.profile.region}
+              onChange={handleProfileChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Country</label>
+            <input
+              type="text"
+              name="country"
+              value={formData.profile.country}
+              onChange={handleProfileChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">State</label>
+            <input
+              type="text"
+              name="state"
+              value={formData.profile.state}
+              onChange={handleProfileChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">City</label>
+            <input
+              type="text"
+              name="city"
+              value={formData.profile.city}
+              onChange={handleProfileChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 pt-2">
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="canExport"
-            name="canExport"
-            checked={formData.canExport}
-            onChange={handleChange}
+            name="can_export"
+            checked={formData.profile.can_export}
+            onChange={handleProfileChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
-          <label
-            htmlFor="canExport"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-          >
+          <label className="text-sm font-medium cursor-pointer">
             Can Export
           </label>
         </div>
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="isInactive"
-            name="isInactive"
-            checked={formData.isInactive}
-            onChange={handleChange}
+            name="can_copy"
+            checked={formData.profile.can_copy}
+            onChange={handleProfileChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
-          <label
-            htmlFor="isInactive"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-          >
-            Is Inactive
+          <label className="text-sm font-medium cursor-pointer">Can Copy</label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            name="is_cost_visible"
+            checked={formData.profile.is_cost_visible}
+            onChange={handleProfileChange}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+          />
+          <label className="text-sm font-medium cursor-pointer">
+            Is Cost Visible
           </label>
         </div>
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
-            id="isAdmin"
-            name="isAdmin"
-            checked={formData.isAdmin}
-            onChange={handleChange}
+            name="is_inactive"
+            checked={formData.profile.is_inactive}
+            onChange={handleProfileChange}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
           />
-          <label
-            htmlFor="isAdmin"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-          >
-            Is Admin
+          <label className="text-sm font-medium cursor-pointer">
+            Is Inactive
           </label>
         </div>
       </div>

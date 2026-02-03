@@ -2,13 +2,48 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
 import { SimpleDialog } from "@/components/ui/simple-dialog";
-import UserManageForm from "@/components/public/UserManageForm";
+import UserManageForm, {
+  type UserFormData,
+} from "@/components/public/UserManageForm";
 import UserTable, { type User } from "@/components/public/UserTable";
 
 const INITIAL_USERS: User[] = [
-  { id: "1", name: "ABC", canExport: true, isInactive: false, isAdmin: true },
-  { id: "2", name: "DEF", canExport: true, isInactive: true, isAdmin: true },
-  { id: "3", name: "GHI", canExport: true, isInactive: false, isAdmin: true },
+  {
+    id: "1",
+    email: "abc@example.com",
+    user_type: "user",
+    location: "New York",
+    role_id: 1,
+    profile: {
+      full_name: "ABC User",
+      region: "North",
+      country: "USA",
+      state: "NY",
+      city: "NYC",
+      can_export: true,
+      can_copy: false,
+      is_cost_visible: true,
+      is_inactive: false,
+    },
+  },
+  {
+    id: "2",
+    email: "def@example.com",
+    user_type: "admin",
+    location: "London",
+    role_id: 2,
+    profile: {
+      full_name: "DEF User",
+      region: "UK",
+      country: "UK",
+      state: "London",
+      city: "London",
+      can_export: true,
+      can_copy: true,
+      is_cost_visible: false,
+      is_inactive: true,
+    },
+  },
 ];
 
 const ManageUser: React.FC = () => {
@@ -20,14 +55,16 @@ const ManageUser: React.FC = () => {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchQuery.toLowerCase());
+      user.profile.full_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all"
         ? true
         : statusFilter === "active"
-          ? !user.isInactive
-          : user.isInactive;
+          ? !user.profile.is_inactive
+          : user.profile.is_inactive;
 
     return matchesSearch && matchesStatus;
   });
@@ -43,21 +80,38 @@ const ManageUser: React.FC = () => {
   };
 
   const handleDeleteUser = (id: string) => {
-    alert("User deleted successfully!");
+    setUsers(users.filter((u) => u.id !== id));
     console.log("Deleted User ID:", id);
   };
 
   const handleToggleStatus = (user: User) => {
     setUsers(
       users.map((u) =>
-        u.id === user.id ? { ...u, isInactive: !u.isInactive } : u,
+        u.id === user.id
+          ? {
+              ...u,
+              profile: { ...u.profile, is_inactive: !u.profile.is_inactive },
+            }
+          : u,
       ),
     );
   };
 
-  const handleSubmitUser = (formData: any) => {
-    alert("User saved successfully!");
-    console.log("Submitted User Data:", formData);
+  const handleSubmitUser = (formData: UserFormData) => {
+    if (editingUser) {
+      // Update existing user
+      setUsers(
+        users.map((u) => (u.id === editingUser.id ? { ...u, ...formData } : u)),
+      );
+    } else {
+      // Create new user
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...formData,
+      };
+      setUsers([...users, newUser]);
+    }
+    console.log("Submitted User Data Payload:", formData);
     setIsModalOpen(false);
   };
 
@@ -83,7 +137,7 @@ const ManageUser: React.FC = () => {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <input
             type="search"
-            placeholder="Search users by name or ID..."
+            placeholder="Search users by name or email..."
             className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -116,11 +170,12 @@ const ManageUser: React.FC = () => {
           initialData={
             editingUser
               ? {
-                  userId: editingUser.id,
-                  userName: editingUser.name,
-                  canExport: editingUser.canExport,
-                  isInactive: editingUser.isInactive,
-                  isAdmin: editingUser.isAdmin,
+                  email: editingUser.email,
+                  // password field is typically not populated on edit for security, or left blank to indicate no change
+                  user_type: editingUser.user_type,
+                  location: editingUser.location,
+                  role_id: editingUser.role_id,
+                  profile: { ...editingUser.profile },
                 }
               : null
           }
