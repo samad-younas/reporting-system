@@ -32,7 +32,7 @@ const getCategoryStyle = (id: number) => {
 };
 
 const Dashboard: React.FC = () => {
-  const user = useSelector((state: any) => state.auth.userdata);
+  const { userdata } = useSelector((state: any) => state.auth);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null,
   );
@@ -42,24 +42,24 @@ const Dashboard: React.FC = () => {
   const [reportResult, setReportResult] = useState<Record<string, any>[]>([]);
 
   const checkPermission = (item: Report | ReportCategory) => {
-    if (!user) return true;
+    if (!userdata) return true;
 
     if (item.allowedRoles && item.allowedRoles.length > 0) {
-      if (!item.allowedRoles.includes(user.role)) return false;
+      if (!item.allowedRoles.includes(userdata.role)) return false;
     }
     if (item.allowedLocations && item.allowedLocations.length > 0) {
-      if (!item.allowedLocations.includes(user.location)) return false;
+      if (!item.allowedLocations.includes(userdata.location)) return false;
     }
     return true;
   };
 
   const allowedCategories = useMemo(() => {
     return reportCategories.filter(checkPermission);
-  }, [user]);
+  }, [userdata]);
 
   const allowedReports = useMemo(() => {
     return reports.filter((r) => checkPermission(r));
-  }, [user]);
+  }, [userdata]);
 
   const currentCategoryReports = useMemo(() => {
     if (!selectedCategoryId) return [];
@@ -115,10 +115,10 @@ const Dashboard: React.FC = () => {
             Select a category to view available reports.
           </p>
         </div>
-        {user && (
+        {userdata && (
           <div className="text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-            <span className="font-semibold">{user.name}</span> ({user.role} -{" "}
-            {user.location})
+            <span className="font-semibold">{userdata.profile.full_name}</span>{" "}
+            ({userdata.email} {"->"} {userdata.user_type})
           </div>
         )}
       </div>

@@ -10,19 +10,34 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setUser } from "@/store/slices/authSlice";
+import { setUser, setToken } from "@/store/slices/authSlice";
 import loginimg from "@/assets/login-illustration.svg";
+import { useSubmit } from "@/hooks/useSubmit";
+import { toast } from "react-toastify";
 
 const Login: React.FC = () => {
+  const { isPending, mutateAsync } = useSubmit({
+    method: "POST",
+    endpoint: "api/login",
+    isAuth: false,
+  });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Logging in with", { email, password });
-    navigate("/dashboard");
+    try {
+      const data = await mutateAsync({ email, password });
+      dispatch(setToken({ token: data.token }));
+      dispatch(setUser({ userdata: data.user }));
+      toast.success(data.message || "Login successful!");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (
@@ -48,7 +63,7 @@ const Login: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <label
-                  htmlFor="userName"
+                  htmlFor="email"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   User Name
@@ -72,7 +87,7 @@ const Login: React.FC = () => {
                   Password
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
                   value={password}
@@ -87,16 +102,8 @@ const Login: React.FC = () => {
                   <input
                     type="checkbox"
                     id="showPassword"
-                    onChange={(e) => {
-                      const passwordInput = document.getElementById(
-                        "password",
-                      ) as HTMLInputElement;
-                      if (e.target.checked) {
-                        passwordInput.type = "text";
-                      } else {
-                        passwordInput.type = "password";
-                      }
-                    }}
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
                     className="mr-2"
                   />
                   <label
@@ -109,8 +116,12 @@ const Login: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between mt-5">
-              <Button type="submit" className="w-full cursor-pointer">
-                Login
+              <Button
+                type="submit"
+                className="w-full cursor-pointer"
+                disabled={isPending}
+              >
+                {isPending ? "Logging in..." : "Login"}
               </Button>
             </CardFooter>
           </form>

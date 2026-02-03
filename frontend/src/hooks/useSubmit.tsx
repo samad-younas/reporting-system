@@ -1,6 +1,7 @@
 import { apiURL } from "../utils/exports";
 import { useMutation } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 interface UseSubmitParams {
   method?: string;
@@ -29,7 +30,8 @@ export const useSubmit = ({
       const res_data = await response.json();
 
       if (!response.ok) {
-        throw new Error(res_data.message || "Submission failed");
+        toast.error(res_data.message || "Submission failed");
+        return;
       }
 
       return res_data;
