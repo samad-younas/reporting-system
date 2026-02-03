@@ -10,34 +10,30 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setUser, setToken } from "@/store/slices/authSlice";
+import { setUser } from "@/store/slices/authSlice";
 import loginimg from "@/assets/login-illustration.svg";
-import { useSubmit } from "@/hooks/useSubmit";
-import { toast } from "sonner";
 
 const Login: React.FC = () => {
-  const { isPending, mutateAsync } = useSubmit({
-    method: "POST",
-    endpoint: "api/login",
-    isAuth: false,
-  });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState("admin");
+  const [location, setLocation] = useState("New York");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const result = await mutateAsync({ username, password });
-      toast.success(result.message || "Login successful");
-      dispatch(setUser({ userdata: result.user }));
-      dispatch(setToken({ token: result.token }));
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "Login failed");
-    }
+    console.log("Logging in with", { username, password, role, location });
+    dispatch(
+      setUser({
+        userdata: {
+          name: username || "Test User",
+          role,
+          location,
+        },
+      }),
+    );
+    navigate("/dashboard");
   };
 
   return (
@@ -87,7 +83,7 @@ const Login: React.FC = () => {
                   Password
                 </label>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   id="password"
                   name="password"
                   value={password}
@@ -97,13 +93,61 @@ const Login: React.FC = () => {
                   placeholder="Enter your password"
                 />
 
+                <div className="space-y-2 mt-4">
+                  <label
+                    htmlFor="role"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Role
+                  </label>
+                  <select
+                    id="role"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="sales">Sales</option>
+                    <option value="user">User</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <label
+                    htmlFor="location"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Location
+                  </label>
+                  <select
+                    id="location"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  >
+                    <option value="New York">New York</option>
+                    <option value="London">London</option>
+                    <option value="Paris">Paris</option>
+                    <option value="Tokyo">Tokyo</option>
+                  </select>
+                </div>
+
                 {/* show password */}
                 <div className="flex items-center mt-2">
                   <input
                     type="checkbox"
                     id="showPassword"
-                    checked={showPassword}
-                    onChange={(e) => setShowPassword(e.target.checked)}
+                    onChange={(e) => {
+                      const passwordInput = document.getElementById(
+                        "password",
+                      ) as HTMLInputElement;
+                      if (e.target.checked) {
+                        passwordInput.type = "text";
+                      } else {
+                        passwordInput.type = "password";
+                      }
+                    }}
                     className="mr-2"
                   />
                   <label
@@ -116,12 +160,8 @@ const Login: React.FC = () => {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between mt-5">
-              <Button
-                type="submit"
-                className={`w-full cursor-pointer ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}
-                disabled={isPending}
-              >
-                {isPending ? "Logging in..." : "Login"}
+              <Button type="submit" className="w-full cursor-pointer">
+                Login
               </Button>
             </CardFooter>
           </form>

@@ -40,6 +40,7 @@ const Dashboard: React.FC = () => {
 
   const [params, setParams] = useState<Record<string, any>>({});
   const [reportResult, setReportResult] = useState<Record<string, any>[]>([]);
+
   const checkPermission = (item: Report | ReportCategory) => {
     if (!user) return true;
 
@@ -47,14 +48,7 @@ const Dashboard: React.FC = () => {
       if (!item.allowedRoles.includes(user.role)) return false;
     }
     if (item.allowedLocations && item.allowedLocations.length > 0) {
-      const userLocation = user.location || user.city || "";
-      if (
-        !item.allowedLocations.includes(userLocation) &&
-        !item.allowedLocations.includes(user.city) &&
-        !item.allowedLocations.includes(user.country) &&
-        !item.allowedLocations.includes(user.region)
-      )
-        return false;
+      if (!item.allowedLocations.includes(user.location)) return false;
     }
     return true;
   };
@@ -123,8 +117,8 @@ const Dashboard: React.FC = () => {
         </div>
         {user && (
           <div className="text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-            <span className="font-semibold">{user.username}</span> ({user.role}{" "}
-            - {user.location})
+            <span className="font-semibold">{user.name}</span> ({user.role} -{" "}
+            {user.location})
           </div>
         )}
       </div>
@@ -202,7 +196,7 @@ const Dashboard: React.FC = () => {
                           setParams((prev) => ({ ...prev, [k]: v }))
                         }
                       />
-                      <div className="mt-4 flex gap-2">
+                      <div className="mt-4">
                         <Button
                           onClick={handleRunReport}
                           className="w-full sm:w-auto"

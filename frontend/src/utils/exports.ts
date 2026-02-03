@@ -1,13 +1,39 @@
-import type {
-  Report,
-  ReportCategory,
-  ReportParameter,
-  ReportParameterOption,
-} from "../types/reports";
+export const apiURL = "https://api.example.com/v1/";
 
-export type { Report, ReportCategory, ReportParameter, ReportParameterOption };
+export type ReportParameterType = "text" | "date" | "select" | "multiselect";
 
-export const apiURL = "https://apis-reporting.cupsandcurves.com.au/";
+export interface ReportParameterOption {
+  id: string | number;
+  name: string;
+}
+
+export interface ReportParameter {
+  id: number;
+  name: string;
+  label: string;
+  type: ReportParameterType;
+  required?: boolean;
+  options?: ReportParameterOption[];
+}
+
+export interface Report {
+  id: number;
+  name: string;
+  description: string;
+  categoryId: number;
+  type: "table" | "pdf";
+  parameters: ReportParameter[];
+  result: Record<string, any>[];
+  allowedRoles?: string[];
+  allowedLocations?: string[];
+}
+
+export interface ReportCategory {
+  id: number;
+  name: string;
+  allowedRoles?: string[];
+  allowedLocations?: string[];
+}
 
 export const reportCategories: ReportCategory[] = [
   {
@@ -31,7 +57,6 @@ export const reports: Report[] = [
     description: "Daily sales performance summary",
     categoryId: 1,
     type: "table",
-    rptFile: "/reports/CustomerReport1.rpt",
     allowedRoles: ["admin", "manager", "sales"],
     allowedLocations: ["New York", "London"],
     parameters: [

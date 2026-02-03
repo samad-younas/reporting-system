@@ -6,58 +6,9 @@ import UserManageForm from "@/components/public/UserManageForm";
 import UserTable, { type User } from "@/components/public/UserTable";
 
 const INITIAL_USERS: User[] = [
-  {
-    full_name: "Alice Brown",
-    email: "abc@example.com",
-    role: "admin",
-    region: "North America",
-    country: "United States",
-    state: "NY",
-    city: "New York",
-    canExport: true,
-    canCopy: true,
-    isCostVisible: true,
-    isInactive: false,
-  },
-  {
-    full_name: "David Smith",
-    email: "def@example.com",
-    role: "manager",
-    region: "Europe",
-    country: "United Kingdom",
-    state: "London",
-    city: "London",
-    canExport: true,
-    canCopy: false,
-    isCostVisible: false,
-    isInactive: true,
-  },
-  {
-    full_name: "Eva Johnson",
-    email: "ghi@example.com",
-    role: "sales",
-    region: "Europe",
-    country: "France",
-    state: "Île-de-France",
-    city: "Paris",
-    canExport: true,
-    canCopy: true,
-    isCostVisible: false,
-    isInactive: false,
-  },
-  {
-    full_name: "Frank Lee",
-    email: "jkl@example.com",
-    role: "user",
-    region: "North America",
-    country: "United States",
-    state: "NY",
-    city: "New York",
-    canExport: true,
-    canCopy: true,
-    isCostVisible: false,
-    isInactive: true,
-  },
+  { id: "1", name: "ABC", canExport: true, isInactive: false, isAdmin: true },
+  { id: "2", name: "DEF", canExport: true, isInactive: true, isAdmin: true },
+  { id: "3", name: "GHI", canExport: true, isInactive: false, isAdmin: true },
 ];
 
 const ManageUser: React.FC = () => {
@@ -69,11 +20,8 @@ const ManageUser: React.FC = () => {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.region.toLowerCase().includes(searchQuery.toLowerCase());
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all"
         ? true
@@ -102,7 +50,7 @@ const ManageUser: React.FC = () => {
   const handleToggleStatus = (user: User) => {
     setUsers(
       users.map((u) =>
-        u.email === user.email ? { ...u, isInactive: !u.isInactive } : u,
+        u.id === user.id ? { ...u, isInactive: !u.isInactive } : u,
       ),
     );
   };
@@ -168,17 +116,11 @@ const ManageUser: React.FC = () => {
           initialData={
             editingUser
               ? {
-                  full_name: editingUser.full_name,
-                  role: editingUser.role,
-                  region: editingUser.region,
-                  country: editingUser.country,
-                  state: editingUser.state,
-                  city: editingUser.city,
-                  email: editingUser.email,
-                  can_export: editingUser.canExport,
-                  can_copy: editingUser.canCopy,
-                  is_cost_visible: editingUser.isCostVisible,
-                  is_inactive: editingUser.isInactive,
+                  userId: editingUser.id,
+                  userName: editingUser.name,
+                  canExport: editingUser.canExport,
+                  isInactive: editingUser.isInactive,
+                  isAdmin: editingUser.isAdmin,
                 }
               : null
           }
