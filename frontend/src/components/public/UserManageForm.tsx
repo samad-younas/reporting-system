@@ -19,7 +19,7 @@ interface UserFormData {
 
 interface UserManageFormProps {
   initialData?: UserFormData | null;
-  onSubmit: (data: UserFormData) => void;
+  onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
@@ -79,7 +79,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit([formData]);
   };
 
   return (
