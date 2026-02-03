@@ -222,7 +222,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         />
       </div>
 
-      <div className="flex flex-col gap-4 pt-2">
+      <div className="flex flex-wrap gap-4 pt-2">
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
