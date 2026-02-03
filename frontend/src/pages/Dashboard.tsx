@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { Crystal } from "crystis-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,8 +40,6 @@ const Dashboard: React.FC = () => {
 
   const [params, setParams] = useState<Record<string, any>>({});
   const [reportResult, setReportResult] = useState<Record<string, any>[]>([]);
-  const crystalRef = useRef(new Crystal());
-
   const checkPermission = (item: Report | ReportCategory) => {
     if (!user) return true;
 
@@ -110,19 +107,6 @@ const Dashboard: React.FC = () => {
     });
 
     setReportResult(data);
-  };
-  const handleShowCrystalReport = () => {
-    if (!activeReport || !reportResult.length) return;
-
-    crystalRef.current.tjsonstring = JSON.stringify({
-      Customers: reportResult,
-    });
-    crystalRef.current.tcode = "CF9269";
-    crystalRef.current.tucode = "20AD";
-    crystalRef.current.trptfilePath =
-      activeReport.rptFile || "/reports/CustomerReport1.rpt";
-    crystalRef.current.tDEST = "0";
-    crystalRef.current.showReport();
   };
 
   return (
@@ -225,15 +209,6 @@ const Dashboard: React.FC = () => {
                         >
                           Generate Report
                         </Button>
-                        {reportResult.length > 0 && (
-                          <Button
-                            variant="outline"
-                            onClick={handleShowCrystalReport}
-                            className="w-full sm:w-auto"
-                          >
-                            Show Crystal Report
-                          </Button>
-                        )}
                       </div>
                     </div>
 
