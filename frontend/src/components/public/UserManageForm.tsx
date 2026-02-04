@@ -22,12 +22,14 @@ export interface UserFormData {
 }
 
 interface UserManageFormProps {
+  isSubmitting?: boolean;
   initialData?: UserFormData | null;
   onSubmit: (data: UserFormData) => void;
   onCancel: () => void;
 }
 
 const UserManageForm: React.FC<UserManageFormProps> = ({
+  isSubmitting,
   initialData,
   onSubmit,
   onCancel,
@@ -290,8 +292,12 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">
-          {initialData ? "Update User" : "Create User"}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className={`${isSubmitting ? "cursor-not-allowed bg-gray-500 hover:bg-gray-600" : ""}`}
+        >
+          {isSubmitting ? "Submitting..." : "Submit"}
         </Button>
       </div>
     </form>

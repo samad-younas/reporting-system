@@ -8,10 +8,17 @@ import UserManageForm, {
 import UserTable, { type User } from "@/components/public/UserTable";
 import { useFetch } from "@/hooks/useFetch";
 import { LoadingSpinner } from "@/components/public/LoadingSpinner";
+import { useSubmit } from "@/hooks/useSubmit";
+import { toast } from "react-toastify";
 
 const ManageUser: React.FC = () => {
   const { isPending, data: INITIAL_USERS } = useFetch({
     endpoint: "api/user/all",
+    isAuth: true,
+  });
+  const { isPending: isSubmitting, mutateAsync } = useSubmit({
+    method: "POST",
+    endpoint: "api/user/store",
     isAuth: true,
   });
   const [users, setUsers] = useState<User[]>([]);
@@ -77,21 +84,18 @@ const ManageUser: React.FC = () => {
     );
   };
 
-  const handleSubmitUser = (formData: UserFormData) => {
+  const handleSubmitUser = async (formData: UserFormData) => {
+    const data = await mutateAsync(formData);
     if (editingUser) {
       setUsers(
         users.map((u) => (u.id === editingUser.id ? { ...u, ...formData } : u)),
       );
     } else {
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...formData,
-        role_id: formData.role_id ?? 0,
-      };
+      const newUser: User = data.data;
       setUsers([...users, newUser]);
+      toast.success(data.message || "User created successfully!");
+      setIsModalOpen(false);
     }
-    console.log("Submitted User Data Payload:", formData);
-    setIsModalOpen(false);
   };
 
   if (isPending) {
@@ -181,6 +185,7 @@ const ManageUser: React.FC = () => {
           initialData={getInitialFormData()}
           onSubmit={handleSubmitUser}
           onCancel={() => setIsModalOpen(false)}
+          isSubmitting={isSubmitting}
         />
       </SimpleDialog>
     </div>
