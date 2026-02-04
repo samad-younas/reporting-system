@@ -21,6 +21,19 @@ const ManageUser: React.FC = () => {
     endpoint: "api/user/store",
     isAuth: true,
   });
+
+  const { isPending: isUpdating, mutateAsync: updateMutate } = useSubmit({
+    method: "POST",
+    endpoint: (data: any) => `api/user/update/${data.id}`,
+    isAuth: true,
+  });
+
+  const { isPending: isDeleting, mutateAsync: deleteMutate } = useSubmit({
+    method: "DELETE",
+    endpoint: (data: any) => `api/user/delete/${data.id}`,
+    isAuth: true,
+  });
+
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -36,6 +49,8 @@ const ManageUser: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const filteredUsers = users.filter((user) => {
     const fullName = user.profile?.full_name || "";
@@ -65,8 +80,20 @@ const ManageUser: React.FC = () => {
   };
 
   const handleDeleteUser = (id: string | number) => {
-    setUsers(users.filter((u) => u.id !== id));
-    console.log("Deleted User ID:", id);
+    const user = users.find((u) => u.id === id);
+    if (user) {
+      setUserToDelete(user);
+      setDeleteConfirmationOpen(true);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    await deleteMutate({ id: userToDelete.id });
+    setUsers(users.filter((u) => u.id !== userToDelete.id));
+    toast.success("User deleted successfully!");
+    setDeleteConfirmationOpen(false);
+    setUserToDelete(null);
   };
 
   const handleToggleStatus = (user: User) => {
@@ -85,16 +112,22 @@ const ManageUser: React.FC = () => {
   };
 
   const handleSubmitUser = async (formData: UserFormData) => {
-    const data = await mutateAsync(formData);
     if (editingUser) {
+      const dataToSubmit = { ...formData, id: editingUser.id };
+      const data = await updateMutate(dataToSubmit);
       setUsers(
         users.map((u) => (u.id === editingUser.id ? { ...u, ...formData } : u)),
       );
-    } else {
-      const newUser: User = data.data;
-      setUsers([...users, newUser]);
-      toast.success(data.message || "User created successfully!");
+      toast.success(data?.message || "User updated successfully!");
       setIsModalOpen(false);
+    } else {
+      const data = await mutateAsync(formData);
+      if (data) {
+        const newUser: User = data.data;
+        setUsers([...users, newUser]);
+        toast.success(data.message || "User created successfully!");
+        setIsModalOpen(false);
+      }
     }
   };
 
@@ -185,8 +218,39 @@ const ManageUser: React.FC = () => {
           initialData={getInitialFormData()}
           onSubmit={handleSubmitUser}
           onCancel={() => setIsModalOpen(false)}
-          isSubmitting={isSubmitting}
+          isSubmitting={isSubmitting || isUpdating}
         />
+      </SimpleDialog>
+
+      <SimpleDialog
+        isOpen={deleteConfirmationOpen}
+        onClose={() => setDeleteConfirmationOpen(false)}
+        title="Confirm Deletion"
+      >
+        <div className="space-y-4">
+          <p>
+            Are you sure you want to delete user{" "}
+            <strong>
+              {userToDelete?.profile?.full_name || userToDelete?.email}
+            </strong>
+            ? This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmationOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete user"}
+            </Button>
+          </div>
+        </div>
       </SimpleDialog>
     </div>
   );

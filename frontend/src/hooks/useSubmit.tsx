@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 interface UseSubmitParams {
   method?: string;
-  endpoint?: string;
+  endpoint?: string | ((data: any) => string);
   isAuth?: boolean;
 }
 
@@ -18,7 +18,9 @@ export const useSubmit = ({
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch(`${apiURL}${endpoint}`, {
+      const finalEndpoint =
+        typeof endpoint === "function" ? endpoint(data) : endpoint;
+      const response = await fetch(`${apiURL}${finalEndpoint}`, {
         method: method,
         headers: {
           "Content-Type": "application/json",

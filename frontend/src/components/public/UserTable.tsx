@@ -134,7 +134,6 @@ const UserTable: React.FC<UserTableProps> = ({
                             ? "Activate"
                             : "Deactivate"}
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Reset Password</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           variant="destructive"
