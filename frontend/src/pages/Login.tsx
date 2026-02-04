@@ -14,6 +14,8 @@ import { setUser, setToken } from "@/store/slices/authSlice";
 import loginimg from "@/assets/login-illustration.svg";
 import { useSubmit } from "@/hooks/useSubmit";
 import { toast } from "react-toastify";
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "@/config/authConfig";
 
 const Login: React.FC = () => {
   const { isPending, mutateAsync } = useSubmit({
@@ -23,9 +25,34 @@ const Login: React.FC = () => {
   });
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { instance } = useMsal();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleMicrosoftLogin = async () => {
+    try {
+      const result = await instance.loginPopup(loginRequest);
+      if (result && result.account) {
+        const { name, username } = result.account;
+        const userData = {
+          name: name || "User",
+          email: username,
+          role: "User",
+        };
+
+        dispatch(setUser({ userdata: userData }));
+        dispatch(setToken({ token: result.accessToken }));
+
+        toast.success(`Welcome ${name || "User"}!`);
+        navigate("/ssrs-reports");
+      }
+    } catch (error) {
+      console.error("Microsoft Login error", error);
+      toast.error("Microsoft Login failed");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +152,39 @@ const Login: React.FC = () => {
               </Button>
             </CardFooter>
           </form>
+
+          <div className="px-6 pb-6">
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground dark:bg-gray-950">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full flex items-center gap-2"
+              onClick={handleMicrosoftLogin}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 21 21"
+              >
+                <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+              </svg>
+              Sign in with Microsoft
+            </Button>
+          </div>
         </Card>
       </div>
     </div>
