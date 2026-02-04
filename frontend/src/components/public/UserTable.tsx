@@ -25,11 +25,11 @@ import {
 import { MoreHorizontalIcon } from "lucide-react";
 
 export interface User {
-  id: string;
+  id: string | number;
   email: string;
   password?: string;
   user_type: string;
-  role_id: number;
+  role_id: number | string;
   profile: {
     full_name: string;
     region: string;
@@ -40,13 +40,13 @@ export interface User {
     can_copy: boolean;
     is_cost_visible: boolean;
     is_inactive: boolean;
-  };
+  } | null;
 }
 
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string | number) => void;
   onToggleStatus: (user: User) => void;
 }
 
@@ -68,12 +68,17 @@ const UserTable: React.FC<UserTableProps> = ({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="font-bold text-lg">ID</TableHead>
               <TableHead className="font-bold text-lg">Email</TableHead>
               <TableHead className="font-bold text-lg">Full Name</TableHead>
-              <TableHead className="font-bold text-lg">Role ID</TableHead>
+              <TableHead className="font-bold text-lg">User Type</TableHead>
               <TableHead className="font-bold text-lg">Location</TableHead>
-              <TableHead className="font-bold text-lg">Exports</TableHead>
-              <TableHead className="font-bold text-lg">Status</TableHead>
+              <TableHead className="font-bold text-lg">Can Export</TableHead>
+              <TableHead className="font-bold text-lg">Can Copy</TableHead>
+              <TableHead className="font-bold text-lg">
+                Is Cost Visible
+              </TableHead>
+              <TableHead className="font-bold text-lg">IsInactive</TableHead>
               <TableHead className="text-right font-bold text-lg">
                 Actions
               </TableHead>
@@ -89,21 +94,29 @@ const UserTable: React.FC<UserTableProps> = ({
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.id}</TableCell>
                   <TableCell className="font-medium">{user.email}</TableCell>
-                  <TableCell>{user.profile.full_name}</TableCell>
-                  <TableCell>{user.role_id}</TableCell>
-                  <TableCell>
-                    {user.profile.region} - {user.profile.country} -
-                    {user.profile.state} - {user.profile.city}
+                  <TableCell>{user.profile?.full_name || "N/A"}</TableCell>
+                  <TableCell className="font-medium">
+                    {user.user_type}
                   </TableCell>
                   <TableCell>
-                    {user.profile.can_export ? "Yes" : "No"}
+                    {user.profile
+                      ? `${user.profile.region} - ${user.profile.country} - ${user.profile.state} - ${user.profile.city}`
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {user.profile?.can_export ? "Yes" : "No"}
+                  </TableCell>
+                  <TableCell>{user.profile?.can_copy ? "Yes" : "No"}</TableCell>
+                  <TableCell>
+                    {user.profile?.is_cost_visible ? "Yes" : "No"}
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${user.profile.is_inactive ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
+                      className={`px-2 py-1 rounded-full text-xs ${user.profile?.is_inactive ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
                     >
-                      {user.profile.is_inactive ? "Inactive" : "Active"}
+                      {user.profile?.is_inactive ? "Inactive" : "Active"}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -119,7 +132,9 @@ const UserTable: React.FC<UserTableProps> = ({
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onToggleStatus(user)}>
-                          {user.profile.is_inactive ? "Activate" : "Deactivate"}
+                          {user.profile?.is_inactive
+                            ? "Activate"
+                            : "Deactivate"}
                         </DropdownMenuItem>
                         <DropdownMenuItem>Reset Password</DropdownMenuItem>
                         <DropdownMenuSeparator />

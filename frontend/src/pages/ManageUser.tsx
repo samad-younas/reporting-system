@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
 import { SimpleDialog } from "@/components/ui/simple-dialog";
@@ -6,63 +6,43 @@ import UserManageForm, {
   type UserFormData,
 } from "@/components/public/UserManageForm";
 import UserTable, { type User } from "@/components/public/UserTable";
-
-const INITIAL_USERS: User[] = [
-  {
-    id: "1",
-    email: "abc@example.com",
-    user_type: "user",
-    role_id: 1,
-    profile: {
-      full_name: "ABC User",
-      region: "North",
-      country: "USA",
-      state: "NY",
-      city: "NYC",
-      can_export: true,
-      can_copy: false,
-      is_cost_visible: true,
-      is_inactive: false,
-    },
-  },
-  {
-    id: "2",
-    email: "def@example.com",
-    user_type: "admin",
-    role_id: 2,
-    profile: {
-      full_name: "DEF User",
-      region: "UK",
-      country: "UK",
-      state: "London",
-      city: "London",
-      can_export: true,
-      can_copy: true,
-      is_cost_visible: false,
-      is_inactive: true,
-    },
-  },
-];
+import { useFetch } from "@/hooks/useFetch";
+import { LoadingSpinner } from "@/components/public/LoadingSpinner";
 
 const ManageUser: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
+  const { isPending, data: INITIAL_USERS } = useFetch({
+    endpoint: "api/user/all",
+    isAuth: true,
+  });
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    if (INITIAL_USERS) {
+      const usersData = Array.isArray(INITIAL_USERS)
+        ? INITIAL_USERS
+        : INITIAL_USERS.data || [];
+      setUsers(usersData);
+    }
+  }, [INITIAL_USERS]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const filteredUsers = users.filter((user) => {
+    const fullName = user.profile?.full_name || "";
     const matchesSearch =
-      user.profile.full_name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+      fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const isInactive = user.profile?.is_inactive || false;
     const matchesStatus =
       statusFilter === "all"
         ? true
         : statusFilter === "active"
-          ? !user.profile.is_inactive
-          : user.profile.is_inactive;
+          ? !isInactive
+          : isInactive;
 
     return matchesSearch && matchesStatus;
   });
@@ -77,18 +57,20 @@ const ManageUser: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = (id: string | number) => {
     setUsers(users.filter((u) => u.id !== id));
     console.log("Deleted User ID:", id);
   };
 
   const handleToggleStatus = (user: User) => {
+    if (!user.profile) return;
+
     setUsers(
       users.map((u) =>
         u.id === user.id
           ? {
               ...u,
-              profile: { ...u.profile, is_inactive: !u.profile.is_inactive },
+              profile: { ...u.profile!, is_inactive: !u.profile!.is_inactive },
             }
           : u,
       ),
@@ -97,20 +79,51 @@ const ManageUser: React.FC = () => {
 
   const handleSubmitUser = (formData: UserFormData) => {
     if (editingUser) {
-      // Update existing user
       setUsers(
         users.map((u) => (u.id === editingUser.id ? { ...u, ...formData } : u)),
       );
     } else {
-      // Create new user
       const newUser: User = {
         id: Math.random().toString(36).substr(2, 9),
         ...formData,
+        role_id: formData.role_id ?? 0,
       };
       setUsers([...users, newUser]);
     }
     console.log("Submitted User Data Payload:", formData);
     setIsModalOpen(false);
+  };
+
+  if (isPending) {
+    return <LoadingSpinner />;
+  }
+
+  const getInitialFormData = (): UserFormData | null => {
+    if (!editingUser) return null;
+
+    const defaultProfile = {
+      full_name: "",
+      region: "",
+      country: "",
+      state: "",
+      city: "",
+      can_export: false,
+      can_copy: false,
+      is_cost_visible: false,
+      is_inactive: false,
+    };
+
+    return {
+      email: editingUser.email,
+      user_type: editingUser.user_type,
+      role_id:
+        typeof editingUser.role_id === "string"
+          ? parseInt(editingUser.role_id)
+          : editingUser.role_id,
+      profile: editingUser.profile
+        ? { ...defaultProfile, ...editingUser.profile }
+        : defaultProfile,
+    };
   };
 
   return (
@@ -165,16 +178,7 @@ const ManageUser: React.FC = () => {
         title={editingUser ? "Edit User" : "Create New User"}
       >
         <UserManageForm
-          initialData={
-            editingUser
-              ? {
-                  email: editingUser.email,
-                  user_type: editingUser.user_type,
-                  role_id: editingUser.role_id,
-                  profile: { ...editingUser.profile },
-                }
-              : null
-          }
+          initialData={getInitialFormData()}
           onSubmit={handleSubmitUser}
           onCancel={() => setIsModalOpen(false)}
         />
