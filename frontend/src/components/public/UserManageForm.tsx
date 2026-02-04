@@ -1,10 +1,13 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useFetch } from "@/hooks/useFetch";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 export interface UserFormData {
   email: string;
   password?: string;
   user_type: string;
+  role_id?: number;
   profile: {
     full_name: string;
     region: string;
@@ -29,10 +32,14 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  const { isPending, data: rolesData } = useFetch({
+    endpoint: "api/get-all-permission",
+    isAuth: true,
+  });
   const [formData, setFormData] = React.useState<UserFormData>({
     email: "",
     password: "",
-    user_type: "user",
+    user_type: "",
     profile: {
       full_name: "",
       region: "",
@@ -53,7 +60,8 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
       setFormData({
         email: "",
         password: "",
-        user_type: "user",
+        user_type: "",
+        role_id: undefined,
         profile: {
           full_name: "",
           region: "",
@@ -81,6 +89,21 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     }
   };
 
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    const selectedRole = Array.isArray(rolesData)
+      ? rolesData.find((r: any) => r.id === selectedId)
+      : null;
+
+    if (selectedRole) {
+      setFormData((prev) => ({
+        ...prev,
+        user_type: selectedRole.roles,
+        role_id: selectedRole.id,
+      }));
+    }
+  };
+
   const handleProfileChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -100,6 +123,9 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     e.preventDefault();
     onSubmit(formData);
   };
+  if (isPending) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <form
@@ -146,13 +172,21 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">User Type</label>
           <select
-            name="user_type"
-            value={formData.user_type}
-            onChange={handleChange}
+            name="role_id"
+            value={formData.role_id || ""}
+            onChange={handleRoleChange}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            disabled={!rolesData}
           >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
+            <option value="" disabled>
+              Select User Type
+            </option>
+            {Array.isArray(rolesData) &&
+              rolesData.map((role: any) => (
+                <option key={role.id} value={role.id}>
+                  {role.roles}
+                </option>
+              ))}
           </select>
         </div>
       </div>
