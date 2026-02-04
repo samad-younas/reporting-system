@@ -34,12 +34,11 @@ const ManageUser: React.FC = () => {
     isAuth: true,
   });
 
-  const { isPending: isStatusToggling, mutateAsync: toggleStatusMutate } =
-    useSubmit({
-      method: "POST",
-      endpoint: (data: any) => `api/user/${data.id}/status`,
-      isAuth: true,
-    });
+  const { mutateAsync: toggleStatusMutate } = useSubmit({
+    method: "POST",
+    endpoint: (data: any) => `api/user/${data.id}/status`,
+    isAuth: true,
+  });
 
   const [users, setUsers] = useState<User[]>([]);
 
