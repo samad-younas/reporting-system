@@ -5,7 +5,6 @@ export interface UserFormData {
   email: string;
   password?: string;
   user_type: string;
-  role_id: number;
   profile: {
     full_name: string;
     region: string;
@@ -34,7 +33,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     email: "",
     password: "",
     user_type: "user",
-    role_id: 2,
     profile: {
       full_name: "",
       region: "",
@@ -56,7 +54,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         email: "",
         password: "",
         user_type: "user",
-        role_id: 2,
         profile: {
           full_name: "",
           region: "",
@@ -111,6 +108,17 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
+          <label className="text-sm font-medium">Full Name</label>
+          <input
+            type="text"
+            name="full_name"
+            value={formData.profile.full_name}
+            onChange={handleProfileChange}
+            required
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="space-y-2">
           <label className="text-sm font-medium">Email</label>
           <input
             type="email"
@@ -132,29 +140,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
             required={!initialData}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             placeholder="******"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Full Name</label>
-          <input
-            type="text"
-            name="full_name"
-            value={formData.profile.full_name}
-            onChange={handleProfileChange}
-            required
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Role ID</label>
-          <input
-            type="number"
-            name="role_id"
-            value={formData.role_id}
-            onChange={handleChange}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
 
