@@ -34,6 +34,13 @@ const ManageUser: React.FC = () => {
     isAuth: true,
   });
 
+  const { isPending: isStatusToggling, mutateAsync: toggleStatusMutate } =
+    useSubmit({
+      method: "POST",
+      endpoint: (data: any) => `api/user/${data.id}/status`,
+      isAuth: true,
+    });
+
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -96,19 +103,28 @@ const ManageUser: React.FC = () => {
     setUserToDelete(null);
   };
 
-  const handleToggleStatus = (user: User) => {
+  const handleToggleStatus = async (user: User) => {
     if (!user.profile) return;
 
-    setUsers(
-      users.map((u) =>
-        u.id === user.id
-          ? {
-              ...u,
-              profile: { ...u.profile!, is_inactive: !u.profile!.is_inactive },
-            }
-          : u,
-      ),
-    );
+    const newStatus = !user.profile.is_inactive;
+    const response = await toggleStatusMutate({
+      id: user.id,
+      is_inactive: newStatus,
+    });
+
+    if (response) {
+      setUsers(
+        users.map((u) =>
+          u.id === user.id
+            ? {
+                ...u,
+                profile: { ...u.profile!, is_inactive: newStatus },
+              }
+            : u,
+        ),
+      );
+      toast.success(response.message || "User status updated successfully!");
+    }
   };
 
   const handleSubmitUser = async (formData: UserFormData) => {
