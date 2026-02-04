@@ -1,5 +1,11 @@
-import React, { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { lazy, Suspense, useEffect } from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const UserManagement = lazy(() => import("./pages/ManageUser"));
 const Login = lazy(() => import("./pages/Login"));
@@ -7,9 +13,20 @@ const Profile = lazy(() => import("./pages/Profile"));
 const SSRSReports = lazy(() => import("./pages/SSRSReports"));
 import { LoadingSpinner } from "./components/public/LoadingSpinner";
 import { DashboardLayout } from "./components/layout/DashBoardLayout";
+import { useSelector } from "react-redux";
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { userdata } = useSelector((state: any) => state.auth);
+  useEffect(() => {
+    if (!userdata && location.pathname !== "/login") {
+      navigate("/login");
+    } else if (userdata && location.pathname === "/login") {
+      navigate("/dashboard");
+    }
+  }, [userdata, location.pathname]);
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>

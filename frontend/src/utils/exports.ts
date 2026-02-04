@@ -39,9 +39,13 @@ export const reportCategories: ReportCategory[] = [
   {
     id: 1,
     name: "Customer Sales",
-    allowedRoles: ["admin", "manager", "sales"],
+    allowedRoles: ["admin", "manager", "sales", "super-admin"],
   },
-  { id: 2, name: "Product Sales", allowedRoles: ["admin", "manager", "sales"] },
+  {
+    id: 2,
+    name: "Product Sales",
+    allowedRoles: ["admin", "manager", "sales", "super-admin"],
+  },
   {
     id: 3,
     name: "Market Segment Sales",
@@ -57,7 +61,7 @@ export const reports: Report[] = [
     description: "Daily sales performance summary",
     categoryId: 1,
     type: "table",
-    allowedRoles: ["admin", "manager", "sales"],
+    allowedRoles: ["admin", "manager", "sales", "super-admin"],
     allowedLocations: ["New York", "London"],
     parameters: [
       {
@@ -115,7 +119,7 @@ export const reports: Report[] = [
     description: "Summary of sales quotes and backorders",
     categoryId: 1,
     type: "table",
-    allowedRoles: ["sales", "manager", "admin"],
+    allowedRoles: ["sales", "manager", "admin", "super-admin"],
     parameters: [
       {
         id: 1,
@@ -138,7 +142,7 @@ export const reports: Report[] = [
     description: "Detailed product sales report",
     categoryId: 2,
     type: "table",
-    allowedRoles: ["admin", "manager", "user"],
+    allowedRoles: ["admin", "manager", "user", "super-admin"],
     parameters: [
       {
         id: 1,
