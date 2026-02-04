@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           size="icon"
           onClick={onMenuClick}
           aria-label="Toggle sidebar"
-          className="shrink-0 cursor-pointer"
+          className="shrink-0 cursor-pointer md:hidden"
         >
           <Menu className="w-5 h-5" />
         </Button>

@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import authSlice from "./slices/authSlice";
+import reportSlice from "./slices/reportSlice";
 import { persistStore, persistReducer } from "redux-persist";
 
 const authPersistConfig = {
@@ -13,6 +14,7 @@ const persistedAuthReducer = persistReducer(authPersistConfig, authSlice);
 const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
+    report: reportSlice,
   },
 });
 

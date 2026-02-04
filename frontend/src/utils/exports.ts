@@ -1,3 +1,26 @@
+import {
+  LayoutDashboard,
+  UserCog,
+  TrendingUp,
+  Headphones,
+  Gauge,
+  ClipboardList,
+  PieChart,
+  Zap,
+  Users,
+  Trophy,
+  Banknote,
+  Lightbulb,
+  Factory,
+  Globe,
+  Euro,
+  Calendar,
+  Filter,
+  Database,
+  Image,
+  Box,
+} from "lucide-react";
+
 export const apiURL = "https://apis-reporting.cupsandcurves.com.au/";
 
 export type ReportParameterType = "text" | "date" | "select" | "multiselect";
@@ -175,5 +198,114 @@ export const reports: Report[] = [
       },
     ],
     result: [],
+  },
+];
+
+export const navItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  {
+    to: "/user-management",
+    icon: UserCog,
+    label: "User Management",
+  },
+  {
+    to: "/ssrs-reports",
+    icon: TrendingUp,
+    label: "Sales Overview",
+  },
+  {
+    to: "/product-and-custom-sales",
+    icon: Headphones,
+    label: "Customer Support",
+  },
+  {
+    to: "/v-t-and-target-customer-list",
+    icon: Gauge,
+    label: "Sales Performance",
+  },
+  {
+    to: "/management",
+    icon: ClipboardList,
+    label: "Sales Details",
+  },
+  {
+    to: "/dynamic-reports",
+    icon: PieChart,
+    label: "Financial Dashboard",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Zap,
+    label: "Energy Statistics",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Users,
+    label: "Human Resources",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Trophy,
+    label: "Champion League Statistics",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Banknote,
+    label: "Revenue Analysis",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Lightbulb,
+    label: "Energy Consumption",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Banknote,
+    label: "Revenue Analysis",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Factory,
+    label: "Revenue By Industry",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Lightbulb,
+    label: "Energy Consumption",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Globe,
+    label: "Website Statistics",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Euro,
+    label: "EU Trade Overview 2015",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Calendar,
+    label: "YTD Performance",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Filter,
+    label: "Data Filter - Technical Demo",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Database,
+    label: "Data Fedration - Technical Demo",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Image,
+    label: "Bound Image & Text - Technical Demo",
+  },
+  {
+    to: "/b2b-reports",
+    icon: Box,
+    label: "Custom Items - Technical Demo",
   },
 ];
