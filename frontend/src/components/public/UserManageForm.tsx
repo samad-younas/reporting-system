@@ -2,24 +2,7 @@ import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useFetch } from "@/hooks/useFetch";
 import { LoadingSpinner } from "./LoadingSpinner";
-
-export interface UserFormData {
-  email: string;
-  password?: string;
-  user_type: string;
-  role_id?: number;
-  profile: {
-    full_name: string;
-    region: string;
-    country: string;
-    state: string;
-    city: string;
-    can_export: boolean;
-    can_copy: boolean;
-    is_cost_visible: boolean;
-    is_inactive: boolean;
-  };
-}
+import type { UserFormData } from "@/types/user";
 
 interface UserManageFormProps {
   isSubmitting?: boolean;

@@ -23,25 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MoreHorizontalIcon } from "lucide-react";
-
-export interface User {
-  id: string | number;
-  email: string;
-  password?: string;
-  user_type: string;
-  role_id: number | string;
-  profile: {
-    full_name: string;
-    region: string;
-    country: string;
-    state: string;
-    city: string;
-    can_export: boolean;
-    can_copy: boolean;
-    is_cost_visible: boolean;
-    is_inactive: boolean;
-  } | null;
-}
+import type { User } from "@/types/user";
 
 interface UserTableProps {
   users: User[];

@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
 import { SimpleDialog } from "@/components/ui/simple-dialog";
-import UserManageForm, {
-  type UserFormData,
-} from "@/components/public/UserManageForm";
-import UserTable, { type User } from "@/components/public/UserTable";
+import UserManageForm from "@/components/public/UserManageForm";
+import type { UserFormData, User } from "@/types/user";
+import UserTable from "@/components/public/UserTable";
 import { useFetch } from "@/hooks/useFetch";
 import { LoadingSpinner } from "@/components/public/LoadingSpinner";
 import { useSubmit } from "@/hooks/useSubmit";
