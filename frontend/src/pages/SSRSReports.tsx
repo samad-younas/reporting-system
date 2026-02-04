@@ -1,9 +1,21 @@
 import React from "react";
+import SalesByRegion from "@/components/reports/SalesByRegion";
+import KpiCards from "@/components/reports/KpiCards";
 
 const SSRSReports: React.FC = () => {
   return (
-    <div className="border border-gray-100 h-96 flex items-center justify-center bg-white rounded-md shadow-sm">
-      <h1 className="font-bold text-2xl">SSRS Repots will come here</h1>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between pb-1">
+        <h1 className="text-xl font-bold tracking-tight">
+          SSRS Reports Dashboard
+        </h1>
+      </div>
+
+      <KpiCards />
+
+      <div className="grid gap-4 md:grid-cols-1">
+        <SalesByRegion />
+      </div>
     </div>
   );
 };

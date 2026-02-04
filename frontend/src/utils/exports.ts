@@ -202,16 +202,16 @@ export const reports: Report[] = [
 ];
 
 export const navItems = [
+  {
+    to: "/ssrs-reports",
+    icon: TrendingUp,
+    label: "Sales Overview",
+  },
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   {
     to: "/user-management",
     icon: UserCog,
     label: "User Management",
-  },
-  {
-    to: "/ssrs-reports",
-    icon: TrendingUp,
-    label: "Sales Overview",
   },
   {
     to: "/product-and-custom-sales",

@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logOut } from "@/store/slices/authSlice";
 import { useSubmit } from "@/hooks/useSubmit";
 import { toast } from "react-toastify";
@@ -20,6 +20,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+  const { userdata } = useSelector((state: any) => state.auth);
   const { mutateAsync } = useSubmit({
     method: "POST",
     endpoint: "api/logout",
@@ -48,27 +49,35 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         </Button>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer shrink-0"
-          >
-            <User className="w-5 h-5" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => navigate("/profile")}>
-            View Profile
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-            Logout
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-4">
+        {userdata && (
+          <div className="hidden md:block text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
+            <span className="font-semibold">{userdata.profile.full_name}</span>{" "}
+            ({userdata.email} / {userdata.user_type})
+          </div>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer shrink-0"
+            >
+              <User className="w-5 h-5" />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              View Profile
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 };

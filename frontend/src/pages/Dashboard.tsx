@@ -53,12 +53,6 @@ const Dashboard: React.FC = () => {
             {activeReport ? "Report View" : "Dashboard"}
           </h1>
         </div>
-        {userdata && (
-          <div className="text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-            <span className="font-semibold">{userdata.profile.full_name}</span>{" "}
-            ({userdata.email} {"->"} {userdata.user_type})
-          </div>
-        )}
       </div>
 
       <div className="flex-1 min-h-0 overflow-hidden">

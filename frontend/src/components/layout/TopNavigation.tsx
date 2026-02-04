@@ -34,9 +34,6 @@ export const TopNavigation: React.FC = () => {
   }, [userdata]);
 
   const handleCategoryClick = (id: number) => {
-    // If clicking same category, maybe deselect?
-    // The user requirement says "clicking that top boxes... show specific items".
-    // I'll toggle it.
     if (selectedCategoryId === id) {
       dispatch(setSelectedCategoryId(null));
     } else {
