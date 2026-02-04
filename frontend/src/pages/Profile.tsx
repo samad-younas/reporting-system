@@ -143,9 +143,6 @@ const Profile: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center">
-              <span className="text-sm font-medium">Role ID</span>
-              <Badge variant="outline">{userdata.role_id}</Badge>
-
               <span className="text-sm font-medium">Export Data</span>
               {renderBooleanBadge(userdata.can_export, "Allowed", "Denied")}
 
