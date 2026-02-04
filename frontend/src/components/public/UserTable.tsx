@@ -75,10 +75,8 @@ const UserTable: React.FC<UserTableProps> = ({
               <TableHead className="font-bold text-lg">Location</TableHead>
               <TableHead className="font-bold text-lg">Can Export</TableHead>
               <TableHead className="font-bold text-lg">Can Copy</TableHead>
-              <TableHead className="font-bold text-lg">
-                Is Cost Visible
-              </TableHead>
-              <TableHead className="font-bold text-lg">IsInactive</TableHead>
+              <TableHead className="font-bold text-lg">Cost Visible</TableHead>
+              <TableHead className="font-bold text-lg">Status</TableHead>
               <TableHead className="text-right font-bold text-lg">
                 Actions
               </TableHead>
