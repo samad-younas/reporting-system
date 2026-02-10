@@ -11,6 +11,7 @@ import { setSelectedReportId } from "@/store/slices/reportSlice";
 import {
   Search,
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   FileBarChart,
   Database,
@@ -303,13 +304,8 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // --- STORE VIEW (Grid with Sub-Categories) ---
   return (
     <div className="flex flex-col h-full bg-background relative isolate">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-background to-background"></div>
-
-      {/* 1. Header with Search */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 sm:p-8 pb-4">
         <div className="flex items-center gap-5 self-start md:self-auto">
           <div>
@@ -353,49 +349,38 @@ const Dashboard: React.FC = () => {
                     <div className="h-px flex-1 bg-linear-to-r from-border to-transparent" />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                     {reports.map((report) => (
                       <Card
                         key={report.id}
-                        className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden border-border/60 bg-card hover:border-primary/50 relative"
+                        className="cursor-pointer group relative border border-slate-100 shadow-sm transition-all duration-300 bg-white h-32 overflow-hidden"
                         onClick={() => handleReportSelect(report.id)}
                       >
-                        {/* Hover Tooltip Overlay */}
-                        <div className="absolute inset-0 bg-primary/95 text-primary-foreground p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-center items-center text-center pointer-events-none backdrop-blur-sm">
-                          <FileBarChart className="h-10 w-10 mb-3 opacity-80" />
-                          <h4 className="font-bold text-lg mb-2 leading-tight">
-                            {report.name}
-                          </h4>
-                          <p className="text-sm line-clamp-3 text-primary-foreground/90">
-                            {report.details || report.description}
-                          </p>
-                          <div className="mt-5 text-xs font-bold uppercase tracking-widest border border-primary-foreground/30 px-4 py-2 rounded-full bg-white/10">
-                            Run Report
-                          </div>
-                        </div>
-
-                        <div className="flex flex-row p-6 gap-5 items-start h-full">
-                          <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            {/* Use report type icon if available, else default */}
-                            <FileBarChart className="h-6 w-6 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors truncate">
+                        {/* Default State: Clean White Card - Fades out on hover */}
+                        <div className="p-5 h-full flex flex-col justify-between relative z-10 group-hover:opacity-0 transition-opacity duration-200">
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                {report.subCategory?.replace(/^\d+\.\s*/, "") ||
+                                  "General"}
+                              </span>
+                            </div>
+                            <h3 className="font-extrabold text-sm leading-snug text-slate-800 line-clamp-2">
                               {report.name}
                             </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                              {report.description}
-                            </p>
                           </div>
                         </div>
 
-                        <div className="bg-muted/30 px-6 py-3 border-t flex items-center justify-between text-xs text-muted-foreground group-hover:bg-primary/5 transition-colors">
-                          <div className="flex gap-2 items-center">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                            <span>Live Data</span>
-                          </div>
-                          <div className="font-medium opacity-60">
-                            v{report.version || "1.0"}
+                        {/* Hover State: Blue Overlay Slide Up */}
+                        <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-0" />
+
+                        {/* Overlay Content (Only visible on hover) */}
+                        <div className="absolute inset-0 p-5 flex flex-col justify-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 z-20">
+                          <p className="text-xs text-primary-foreground/90 leading-relaxed line-clamp-4 font-medium">
+                            {report.description}
+                          </p>
+                          <div className="mt-4 flex items-center justify-center gap-2 text-[10px] font-bold text-white uppercase tracking-wider">
+                            Show Report <ArrowRight className="h-3 w-3" />
                           </div>
                         </div>
                       </Card>
