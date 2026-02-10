@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { reports, reportCategories, type Report } from "@/utils/exports";
 import { checkPermission } from "@/utils/permissions";
 import DynamicForm from "@/components/reports/DynamicForm";
@@ -14,8 +13,6 @@ import {
   ArrowRight,
   CheckCircle2,
   FileBarChart,
-  Database,
-  Share2,
   Layers,
   Plus,
 } from "lucide-react";
@@ -145,55 +142,37 @@ const Dashboard: React.FC = () => {
             </div>
 
             <Hr />
-
-            {/* Benefits */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Benefits</h3>
-              <ul className="space-y-2">
-                {(
-                  activeReport.benefits || [
-                    "Standardize reporting",
-                    "View real-time data",
-                  ]
-                ).map((benefit, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2 text-sm text-foreground/80"
-                  >
-                    <CheckCircle2 className="h-4 w-4 mt-1 text-green-600 shrink-0" />
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <Hr />
-
             {/* Overview / Preview */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Overview</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 {activeReport.details || activeReport.description}
               </p>
-
-              {/* Preview Image Area */}
-              <div className="border rounded-xl overflow-hidden bg-secondary/20 shadow-inner">
-                {activeReport.previewImage ? (
-                  <img
-                    src={activeReport.previewImage}
-                    alt="Current Report Preview"
-                    className="w-full h-auto object-cover max-h-100"
-                  />
-                ) : (
-                  <div className="h-64 flex items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <CategoryIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No preview available</p>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
+            <Hr />
+            {/* Included in App */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-card-foreground">
+                  Included in the report
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Data
+                  Source
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Dashboard
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Exportable
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Drilldown
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Render Report Result if generated */}
             {showResults && (
@@ -214,90 +193,51 @@ const Dashboard: React.FC = () => {
 
           {/* RIGHT COLUMN: Action & Metadata */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Action Card / Parameter Form */}
-            <Card className="border-primary/20 shadow-lg ring-1 ring-primary/5">
-              <div className="bg-primary text-primary-foreground px-6 py-3 rounded-t-xl font-bold text-center tracking-wide">
-                RUN THIS REPORT
-              </div>
-              <CardContent className="pt-6 space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                    <Layers className="h-4 w-4" /> Parameters
+            {/* Action Card / Parameter Form - Enhanced Design */}
+            <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-all duration-300">
+              <div className="relative">
+                <CardHeader className="relative pb-4 border-b border-border/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl font-bold tracking-tight text-foreground">
+                        Run Report
+                      </CardTitle>
+                      <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wider">
+                        Configure Parameters
+                      </p>
+                    </div>
+                    <div className="h-10 w-10 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
+                      <Layers className="h-5 w-5" />
+                    </div>
                   </div>
-                  <DynamicForm
-                    parameters={activeReport.parameters}
-                    values={params}
-                    onChange={(k, v) =>
-                      setParams((prev) => ({ ...prev, [k]: v }))
-                    }
-                  />
+                </CardHeader>
+              </div>
+
+              <CardContent className="pt-6 space-y-8">
+                <div className="space-y-4">
+                  {/* Form Container */}
+                  <div className="p-1">
+                    <DynamicForm
+                      parameters={activeReport.parameters}
+                      values={params}
+                      onChange={(k, v) =>
+                        setParams((prev) => ({ ...prev, [k]: v }))
+                      }
+                    />
+                  </div>
                 </div>
+
                 <Button
                   onClick={handleRunReport}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-md transition-all active:scale-95"
+                  className="w-full h-12 text-base rounded-xl font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 bg-primary hover:bg-primary/90 transition-all active:scale-[0.98]"
                 >
-                  GENERATE REPORT
+                  <span className="flex items-center gap-2">
+                    Generate Report{" "}
+                    <ArrowRight className="h-4 w-4 stroke-[3px]" />
+                  </span>
                 </Button>
               </CardContent>
             </Card>
-
-            {/* Included in App */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-card-foreground">
-                  Included in the report
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Database className="h-4 w-4 text-primary" /> Data Source
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileBarChart className="h-4 w-4 text-primary" /> Dashboard
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Share2 className="h-4 w-4 text-primary" /> Exportable
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Layers className="h-4 w-4 text-primary" /> Drilldown
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Metadata */}
-            <div className="bg-muted/30 p-4 rounded-lg space-y-4">
-              <div>
-                <h4 className="font-medium text-xs text-muted-foreground uppercase mb-2">
-                  Setup Effort
-                </h4>
-                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-linear-to-r from-green-400 to-emerald-600 w-[15%]" />
-                </div>
-                <div className="flex justify-between text-[10px] text-muted-foreground mt-1 uppercase font-semibold">
-                  <span>Low</span>
-                  <span>High</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-medium text-xs text-muted-foreground uppercase">
-                  Tags
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {(activeReport.tags || ["Business Analytics", "Data"]).map(
-                    (tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="font-normal text-xs px-2 py-0.5"
-                      >
-                        {tag}
-                      </Badge>
-                    ),
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
