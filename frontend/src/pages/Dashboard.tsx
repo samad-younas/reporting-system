@@ -17,7 +17,7 @@ import {
   Database,
   Share2,
   Layers,
-  RefreshCw,
+  Plus,
 } from "lucide-react";
 
 const Hr = () => <div className="h-px w-full bg-border my-4" />;
@@ -320,11 +320,11 @@ const Dashboard: React.FC = () => {
 
         <div>
           <Button
-            onClick={() => window.location.reload()}
+            onClick={() => console.log("Add New Report")}
             className="h-12 px-6 rounded-full shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all hover:shadow-md active:scale-95"
           >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh Data
+            <Plus className="mr-2 h-4 w-4" />
+            Add New Report
           </Button>
         </div>
       </div>
