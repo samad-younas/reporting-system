@@ -9,18 +9,17 @@ import { cn } from "@/lib/utils";
 const getCategoryStyle = (id: number) => {
   switch (id) {
     case 1:
-      return { color: "bg-orange-500 hover:bg-orange-600", icon: TrendingUp };
+      return { color: "bg-orange-500 hover:bg-orange-600" };
     case 2:
-      return { color: "bg-blue-500 hover:bg-blue-600", icon: BarChart3 };
+      return { color: "bg-blue-500 hover:bg-blue-600" };
     case 3:
-      return { color: "bg-green-500 hover:bg-green-600", icon: PieChart };
+      return { color: "bg-green-500 hover:bg-green-600" };
     case 4:
       return {
         color: "bg-purple-500 hover:bg-purple-600",
-        icon: FileSpreadsheet,
       };
     default:
-      return { color: "bg-primary hover:bg-primary/90", icon: FileSpreadsheet };
+      return { color: "bg-primary hover:bg-primary/90" };
   }
 };
 
@@ -45,7 +44,7 @@ export const TopNavigation: React.FC = () => {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0 p-4 border-b bg-background">
       {allowedCategories.map((category) => {
         const style = getCategoryStyle(category.id);
-        const Icon = style.icon;
+        const Icon = category.icon || FileSpreadsheet;
         const isSelected = selectedCategoryId === category.id;
 
         return (

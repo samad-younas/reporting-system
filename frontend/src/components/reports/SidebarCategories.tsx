@@ -27,6 +27,7 @@ export default function SidebarCategories({
             className={clsx("w-full justify-start")}
             onClick={() => onSelect(c.id)}
           >
+            {c.icon && <c.icon className="mr-2 h-4 w-4" />}
             {c.name}
           </Button>
         ))}

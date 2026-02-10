@@ -95,6 +95,10 @@ const Dashboard: React.FC = () => {
 
   // --- DETAIL VIEW ---
   if (activeReport) {
+    const CategoryIcon =
+      reportCategories.find((c) => c.id === activeReport.categoryId)?.icon ||
+      FileBarChart;
+
     return (
       <div className="h-full flex flex-col gap-6 overflow-y-auto p-4 sm:p-6 bg-background">
         {/* Header Section */}
@@ -102,7 +106,7 @@ const Dashboard: React.FC = () => {
           <div className="flex gap-4">
             <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
               {/* Could allow dynamic icons per report in future */}
-              <FileBarChart className="h-8 w-8 text-primary" />
+              <CategoryIcon className="h-8 w-8 text-primary" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -182,7 +186,7 @@ const Dashboard: React.FC = () => {
                 ) : (
                   <div className="h-64 flex items-center justify-center text-muted-foreground">
                     <div className="text-center">
-                      <FileBarChart className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <CategoryIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
                       <p>No preview available</p>
                     </div>
                   </div>

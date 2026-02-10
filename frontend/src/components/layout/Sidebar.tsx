@@ -195,14 +195,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       )}
                     >
                       <span className="flex items-center gap-3">
-                        <FileText
-                          className={cn(
-                            "w-4 h-4 transition-colors",
-                            isSelectedCtx
-                              ? "text-primary"
-                              : "text-muted-foreground group-hover:text-foreground",
-                          )}
-                        />
+                        {cat.icon ? (
+                          <cat.icon
+                            className={cn(
+                              "w-4 h-4 transition-colors",
+                              isSelectedCtx
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover:text-foreground",
+                            )}
+                          />
+                        ) : (
+                          <FileText
+                            className={cn(
+                              "w-4 h-4 transition-colors",
+                              isSelectedCtx
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover:text-foreground",
+                            )}
+                          />
+                        )}
                         {cat.name}
                       </span>
                       {cat.subCategories.length > 0 && (

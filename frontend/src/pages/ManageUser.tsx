@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, UserCog } from "lucide-react";
 import { SimpleDialog } from "@/components/ui/simple-dialog";
 import UserManageForm from "@/components/public/UserManageForm";
 import type { UserFormData, User } from "@/types/user";
@@ -181,7 +181,8 @@ const ManageUser: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
+          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
+            <UserCog className="h-8 w-8" />
             User Management
           </h1>
           <p className="text-muted-foreground mt-1">

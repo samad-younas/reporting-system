@@ -1,6 +1,14 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  DollarSign,
+  CreditCard,
+  Wallet,
+  ShoppingCart,
+  Users,
+  PieChart,
+} from "lucide-react";
 
 const kpiData = [
   {
@@ -8,7 +16,8 @@ const kpiData = [
     value: "$6.24M",
     subtext: "$159M Revenue YTD",
     change: "+$6.24M",
-    color: "text-emerald-600", // Keep Icon/Text color
+    color: "text-emerald-600",
+    icon: DollarSign,
   },
   {
     title: "Expenses YTD",
@@ -16,6 +25,7 @@ const kpiData = [
     subtext: "$30.6M Expenses YTD",
     change: "+$15.3K",
     color: "text-rose-600",
+    icon: CreditCard,
   },
   {
     title: "Profit YTD",
@@ -23,6 +33,7 @@ const kpiData = [
     subtext: "$129M Profit YTD",
     change: "+$6.23M",
     color: "text-blue-600",
+    icon: Wallet,
   },
   {
     title: "Avg Order Size",
@@ -30,6 +41,7 @@ const kpiData = [
     subtext: "$955K Avg Order Size",
     change: "+$114K",
     color: "text-amber-600",
+    icon: ShoppingCart,
   },
   {
     title: "New Customers",
@@ -37,6 +49,7 @@ const kpiData = [
     subtext: "207K New Customers",
     change: "+15.8K",
     color: "text-violet-600",
+    icon: Users,
   },
   {
     title: "Market Share",
@@ -44,6 +57,7 @@ const kpiData = [
     subtext: "Market Share",
     change: "",
     color: "text-cyan-600",
+    icon: PieChart,
   },
 ];
 
@@ -59,6 +73,7 @@ const KpiCards: React.FC = () => {
             <CardTitle className="text-xs font-medium text-slate-500 uppercase tracking-wide">
               {kpi.title}
             </CardTitle>
+            <kpi.icon className={`h-4 w-4 ${kpi.color} opacity-70`} />
           </CardHeader>
           <CardContent className="px-4 pb-3">
             <div className={`text-xl font-bold ${kpi.color} flex items-center`}>
