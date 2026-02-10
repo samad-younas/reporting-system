@@ -46,7 +46,7 @@ const Login: React.FC = () => {
         dispatch(setToken({ token: result.accessToken }));
 
         toast.success(`Welcome ${name || "User"}!`);
-        navigate("/ssrs-reports");
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Microsoft Login error", error);

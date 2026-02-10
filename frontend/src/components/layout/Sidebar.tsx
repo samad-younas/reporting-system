@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   X,
   ChevronRight,
@@ -7,6 +8,8 @@ import {
   LayoutGrid,
   FileText,
   Building2,
+  Users,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +27,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { selectedCategoryId, selectedSubCategory, searchTerm } = useSelector(
     (state: any) => state.report,
@@ -83,6 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     dispatch(setSelectedCategoryId(id)); // Set Category
     dispatch(setSelectedSubCategory(null)); // Clear specific sub-category
     toggleCategory(id);
+    navigate("/dashboard");
     if (window.innerWidth < 768 && onClose) {
       // Don't close immediately allow tree nav
     }
@@ -96,6 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     e.stopPropagation();
     dispatch(setSelectedCategoryId(catId));
     dispatch(setSelectedSubCategory(subCat));
+    navigate("/dashboard");
     if (window.innerWidth < 768 && onClose) onClose();
   };
 
@@ -103,6 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     dispatch(setSelectedCategoryId(null));
     dispatch(setSelectedSubCategory(null));
     dispatch(setSelectedReportId(null));
+    navigate("/dashboard");
     if (window.innerWidth < 768 && onClose) onClose();
   };
 
@@ -269,6 +277,59 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </div>
                 );
               })}
+            </div>
+
+            <div>
+              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                System
+              </h3>
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    navigate("/ssrs-reports");
+                    if (window.innerWidth < 768 && onClose) onClose();
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                    location.pathname === "/ssrs-reports"
+                      ? "bg-secondary text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  )}
+                >
+                  <ScrollText
+                    className={cn(
+                      "w-4 h-4 transition-colors",
+                      location.pathname === "/ssrs-reports"
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  SSRS Reports
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/user-management");
+                    if (window.innerWidth < 768 && onClose) onClose();
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                    location.pathname === "/user-management"
+                      ? "bg-secondary text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  )}
+                >
+                  <Users
+                    className={cn(
+                      "w-4 h-4 transition-colors",
+                      location.pathname === "/user-management"
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  User Management
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -24,7 +24,7 @@ const App: React.FC = () => {
     if (!userdata && location.pathname !== "/login") {
       navigate("/login");
     } else if (userdata && location.pathname === "/login") {
-      navigate("/ssrs-reports");
+      navigate("/dashboard");
     }
   }, [userdata, location.pathname]);
   return (
