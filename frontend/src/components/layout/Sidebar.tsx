@@ -65,7 +65,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         // Get unique sub-categories
         const subCategories = Array.from(
-          new Set(catReports.map((r) => r.subCategory || "General Reports")),
+          new Set(
+            catReports.flatMap((r) =>
+              r.subCategories && r.subCategories.length > 0
+                ? r.subCategories
+                : ["General Reports"],
+            ),
+          ),
         ).sort();
 
         // Auto-expand if search active
@@ -336,7 +342,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
-                    Users
+                    User Management
                   </button>
                   <button
                     onClick={() => {
@@ -358,7 +364,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
-                    Reports
+                    Report Management
                   </button>
                 </div>
               </div>

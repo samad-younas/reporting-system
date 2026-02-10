@@ -45,7 +45,7 @@ export interface Report {
   description: string;
   details?: string;
   categoryId: number;
-  subCategory?: string;
+  subCategories?: string[];
   type: "table" | "pdf";
   parameters: ReportParameter[];
   result: Record<string, any>[];
@@ -142,7 +142,7 @@ export const reports: Report[] = [
     previewImage:
       "https://placehold.co/600x300/e2e8f0/1e293b?text=Daily+Sales+Report",
     categoryId: 1,
-    subCategory: "1. Daily Tracking",
+    subCategories: ["1. Daily Tracking"],
     type: "table",
     allowedRoles: ["admin", "manager", "sales", "super-admin"],
     allowedLocations: ["New York", "London"],
@@ -189,7 +189,7 @@ export const reports: Report[] = [
     previewImage:
       "https://placehold.co/600x300/e2e8f0/1e293b?text=Quotes+Report",
     categoryId: 1,
-    subCategory: "2. Order Management",
+    subCategories: ["2. Order Management"],
     type: "table",
     allowedRoles: ["sales", "manager", "admin", "super-admin"],
     parameters: [
@@ -215,7 +215,7 @@ export const reports: Report[] = [
     details:
       "Comparative analysis of sales performance across different territories.",
     categoryId: 1,
-    subCategory: "3. Regional Analysis",
+    subCategories: ["3. Regional Analysis"],
     type: "table",
     allowedRoles: ["admin", "manager"],
     parameters: [{ id: 1, name: "year", label: "Year", type: "text" }],
@@ -235,7 +235,7 @@ export const reports: Report[] = [
     previewImage:
       "https://placehold.co/600x300/e2e8f0/1e293b?text=Product+Drilldown",
     categoryId: 2,
-    subCategory: "1. Performance",
+    subCategories: ["1. Performance"],
     type: "table",
     allowedRoles: ["admin", "manager", "user", "super-admin"],
     parameters: [
@@ -259,7 +259,7 @@ export const reports: Report[] = [
     description: "Current value of stock on hand",
     details: "FIFO valuation of current inventory assets.",
     categoryId: 2,
-    subCategory: "2. Inventory",
+    subCategories: ["2. Inventory"],
     type: "table",
     allowedRoles: ["admin"],
     parameters: [],
@@ -271,7 +271,7 @@ export const reports: Report[] = [
     description: "Items with low turnover",
     details: "Identifies stock that has not moved in X days.",
     categoryId: 2,
-    subCategory: "2. Inventory",
+    subCategories: ["2. Inventory"],
     type: "table",
     allowedRoles: ["manager", "admin"],
     parameters: [{ id: 1, name: "days", label: "Days Inactive", type: "text" }],
@@ -284,7 +284,7 @@ export const reports: Report[] = [
     name: "Demographic Breakdown",
     description: "Customer age and gender distribution",
     categoryId: 3,
-    subCategory: "1. Demographics",
+    subCategories: ["1. Demographics"],
     type: "table",
     parameters: [],
     result: [],
@@ -294,7 +294,7 @@ export const reports: Report[] = [
     name: "Sales by Interest",
     description: "Revenue based on customer interest tags",
     categoryId: 3,
-    subCategory: "2. Psychographics",
+    subCategories: ["2. Psychographics"],
     type: "table",
     parameters: [],
     result: [],
@@ -313,7 +313,7 @@ export const reports: Report[] = [
     previewImage:
       "https://placehold.co/600x300/e2e8f0/1e293b?text=Therapist+Report",
     categoryId: 4,
-    subCategory: "1. Transactions",
+    subCategories: ["1. Transactions"],
     type: "table",
     allowedLocations: ["New York"],
     parameters: [

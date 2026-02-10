@@ -1,19 +1,5 @@
 import type { Report, ReportCategory } from "./exports";
 
-interface UserProfile {
-  country?: string;
-  region?: string;
-  state?: string;
-  city?: string;
-  costCenter?: string;
-  role?: string;
-}
-
-interface UserData {
-  user_type: string;
-  profile: UserProfile;
-}
-
 export const checkPermission = (
   item: Report | ReportCategory,
   userdata: any, // Typed loosely as any in app, but structure is UserData

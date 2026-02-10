@@ -101,7 +101,10 @@ const Dashboard: React.FC = () => {
           : true;
 
       const matchesSubCategory = selectedSubCategory
-        ? (r.subCategory || "General Reports") === selectedSubCategory
+        ? (r.subCategories && r.subCategories.length > 0
+            ? r.subCategories
+            : ["General Reports"]
+          ).includes(selectedSubCategory)
         : true;
 
       return matchesCategory && matchesSubCategory;
@@ -320,8 +323,9 @@ const Dashboard: React.FC = () => {
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                                {report.subCategory?.replace(/^\d+\.\s*/, "") ||
-                                  "General"}
+                                {report.subCategories
+                                  ?.map((s) => s.replace(/^\d+\.\s*/, ""))
+                                  .join(", ") || "General"}
                               </span>
                             </div>
                             <h3 className="font-extrabold text-sm leading-snug text-slate-800 line-clamp-2">

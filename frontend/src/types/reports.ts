@@ -25,7 +25,7 @@ export interface Report {
   description: string;
   details?: string;
   categoryId: number;
-  subCategory?: string;
+  subCategories?: string[];
   type: string;
   parameters: ReportParameter[];
   result: any[];

@@ -56,7 +56,19 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   </div>
                 </TableCell>
                 <TableCell>{report.categoryId}</TableCell>
-                <TableCell>{report.subCategory}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {report.subCategories?.map((sub, i) => (
+                      <Badge
+                        key={i}
+                        variant="secondary"
+                        className="text-[10px] px-1 h-5"
+                      >
+                        {sub}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline">{report.type}</Badge>
                 </TableCell>
