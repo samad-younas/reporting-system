@@ -280,7 +280,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider my-2 px-2">
                 System
               </h3>
               <div className="space-y-1">
