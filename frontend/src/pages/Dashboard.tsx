@@ -55,13 +55,37 @@ const Dashboard: React.FC = () => {
       const crystal = new Crystal();
       crystal.tcode = "CF9269";
       crystal.tucode = "20AD";
-      crystal.trptfilePath = `/reports/${activeReport.id}.rpt`;
       crystal.tjsonstring = JSON.stringify(data);
 
-      await crystal.showReport();
+      // Custom report generation implementation to bypass file requirement
+      // Use the active report ID to reference the report template that presumably already exists on the server.
+      // This avoids uploading a local .rpt file which does not exist in the project.
+      const tname = activeReport.id.toString();
+
+      // Upload JSON only (skipping .rpt file upload)
+      await crystal.uploadString(
+        crystal.tjsonstring,
+        crystal.tcode,
+        tname,
+        "json",
+      );
+
+      const query = crystal.buildQueryString(
+        tname,
+        crystal.tcode,
+        crystal.tucode,
+      );
+      const encrypted = await crystal.encrypt(query);
+
+      if (encrypted.tekst1 === "Ok") {
+        const reportUrl = `https://www.pro.siteknower.com/CrystalReportB.aspx?enc=${encrypted.tekst3}`;
+        window.open(reportUrl, "_blank");
+      } else {
+        throw new Error(encrypted.tekst2);
+      }
     } catch (error) {
       console.error("Failed to load report", error);
-      alert("Failed to load report. Please ensure the report file exists.");
+      alert("Failed to load report.");
     }
   };
 

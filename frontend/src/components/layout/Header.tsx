@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="border-b px-3 md:px-4 lg:px-6 py-3 flex items-center justify-between sticky top-0 z-30 backdrop-blur-sm bg-card/95 gap-4">
+    <header className="border-b px-3 md:px-4 lg:px-6 py-6 flex items-center justify-between sticky top-0 z-30 backdrop-blur-sm bg-card/95 gap-4">
       <div className="flex items-center gap-4 flex-1 max-w-xl">
         <Button
           variant="ghost"

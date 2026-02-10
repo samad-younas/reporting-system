@@ -156,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </Button>
         </div>
 
-        <div className="h-px bg-border/60 mx-4 mb-2 mt-4" />
+        <div className="h-px bg-border/60 mb-2 mt-4" />
 
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
           <div>
