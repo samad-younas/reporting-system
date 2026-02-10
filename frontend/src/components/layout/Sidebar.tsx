@@ -366,7 +366,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="p-4 border-t bg-background">
+        <div className="p-2 border-t bg-card">
           <div className="flex items-center gap-3 px-2 py-2 rounded-lg bg-secondary/30 border border-border/50">
             <div className="h-8 w-8 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
               {userdata?.profile?.full_name?.charAt(0) || "U"}
