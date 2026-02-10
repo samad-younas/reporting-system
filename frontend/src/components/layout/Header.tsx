@@ -1,6 +1,7 @@
 import React from "react";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { User } from "lucide-react";
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logOut } from "@/store/slices/authSlice";
+import { setSearchTerm } from "@/store/slices/reportSlice";
 import { useSubmit } from "@/hooks/useSubmit";
 import { toast } from "react-toastify";
 
@@ -20,7 +22,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const { userdata } = useSelector((state: any) => state.auth);
+  const { searchTerm } = useSelector((state: any) => state.report);
   const { mutateAsync } = useSubmit({
     method: "POST",
     endpoint: "api/logout",
@@ -36,8 +38,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="border-b px-3 md:px-4 lg:px-6 py-5 flex items-center justify-between sticky top-0 z-30 backdrop-blur-sm bg-card/95">
-      <div className="flex items-center">
+    <header className="border-b px-3 md:px-4 lg:px-6 py-3 flex items-center justify-between sticky top-0 z-30 backdrop-blur-sm bg-card/95 gap-4">
+      <div className="flex items-center gap-4 flex-1 max-w-xl">
         <Button
           variant="ghost"
           size="icon"
@@ -47,15 +49,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         >
           <Menu className="w-5 h-5" />
         </Button>
+
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search reports..."
+            className="pl-9 h-9 bg-background/50 focus:bg-background transition-all w-full"
+            value={searchTerm}
+            onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
-        {userdata && (
-          <div className="hidden md:block text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-            <span className="font-semibold">{userdata.profile.full_name}</span>{" "}
-            ({userdata.email} / {userdata.user_type})
-          </div>
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

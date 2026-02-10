@@ -43,46 +43,155 @@ export interface Report {
   id: number;
   name: string;
   description: string;
+  details?: string;
   categoryId: number;
+  subCategory?: string;
   type: "table" | "pdf";
   parameters: ReportParameter[];
   result: Record<string, any>[];
   allowedRoles?: string[];
-  allowedLocations?: string[];
+  allowedLocations?: string[]; // Generic allow list
+  // Detailed Geographic Restrictions
+  allowedCountries?: string[];
+  allowedRegions?: string[];
+  allowedStates?: string[];
+  allowedCities?: string[];
+  allowedCostCenters?: string[];
+
+  // Extended fields for UI
+  benefits?: string[];
+  tags?: string[];
+  version?: string;
+  previewImage?: string;
 }
 
 export interface ReportCategory {
   id: number;
   name: string;
+  image?: string;
+  description?: string;
   allowedRoles?: string[];
+  // Detailed Geographic Restrictions
+  allowedCountries?: string[];
+  allowedRegions?: string[];
+  allowedStates?: string[];
+  allowedCities?: string[];
+  allowedCostCenters?: string[];
   allowedLocations?: string[];
 }
 
 export const reportCategories: ReportCategory[] = [
   {
+    id: 0,
+    name: "Dashboards",
+    image: "https://placehold.co/600x400?text=Executive+Dashboards",
+    description: "High-level visual overviews of business performance.",
+    allowedRoles: ["admin", "manager", "super-admin"],
+  },
+  {
     id: 1,
     name: "Customer Sales",
+    image: "https://placehold.co/600x400?text=Customer+Sales",
+    description: "Analyze customer purchasing patterns and sales performance.",
     allowedRoles: ["admin", "manager", "sales", "super-admin"],
   },
   {
     id: 2,
     name: "Product Sales",
+    image: "https://placehold.co/600x400?text=Product+Sales",
+    description: "Detailed insights into product performance and inventory.",
     allowedRoles: ["admin", "manager", "sales", "super-admin"],
   },
   {
     id: 3,
     name: "Market Segment Sales",
+    image: "https://placehold.co/600x400?text=Market+Segment",
+    description: "Sales breakdown by market segments and demographics.",
     allowedRoles: ["admin", "manager", "user"],
   },
-  { id: 4, name: "Therapist Sales", allowedLocations: ["New York"] },
+  {
+    id: 4,
+    name: "Therapist Sales",
+    image: "https://placehold.co/600x400?text=Therapist+Sales",
+    description: "Track therapist performance and transaction history.",
+    allowedLocations: ["New York"],
+  },
+  {
+    id: 5,
+    name: "Financial Reports",
+    image: "https://placehold.co/600x400?text=Finance",
+    description: "P&L, Balance Sheets, and financial statements.",
+    allowedRoles: ["admin", "super-admin"],
+  },
 ];
 
 export const reports: Report[] = [
+  // --- Category: Dashboards (ID 0) ---
+  {
+    id: 1001,
+    name: "Executive Summary",
+    description: "High-level KPI overview for executives",
+    details:
+      "Real-time dashboard showing core business metrics including Revenue, EBITDA, and Customer Acquisition.",
+    benefits: ["Instant business health check", "Trend analysis"],
+    tags: ["Executive", "KPI", "Visual"],
+    version: "1.0",
+    previewImage:
+      "https://placehold.co/600x300/1e293b/ffffff?text=Executive+Dashboard",
+    categoryId: 0,
+    subCategory: "1. Strategic Overview",
+    type: "table",
+    allowedRoles: ["admin", "super-admin"],
+    parameters: [
+      {
+        id: 1,
+        name: "fiscalYear",
+        label: "Fiscal Year",
+        type: "select",
+        options: [
+          { id: "2024", name: "2024" },
+          { id: "2023", name: "2023" },
+        ],
+      },
+    ],
+    result: [],
+  },
+  {
+    id: 1002,
+    name: "Operational Real-time",
+    description: "Live operational metrics",
+    details: "Warehouse status, order backlog, and shipping performance.",
+    benefits: ["Identify bottlenecks", "Resource allocation"],
+    tags: ["Ops", "Real-time"],
+    version: "1.1",
+    previewImage:
+      "https://placehold.co/600x300/1e293b/ffffff?text=Ops+Dashboard",
+    categoryId: 0,
+    subCategory: "2. Operations",
+    type: "table",
+    allowedRoles: ["manager", "admin"],
+    parameters: [],
+    result: [],
+  },
+
+  // --- Category: Customer Sales (ID 1) ---
   {
     id: 101,
     name: "Daily Sales Register",
     description: "Daily sales performance summary",
+    details:
+      "This report provides a comprehensive list of all sales transactions for the selected day, including customer details, amounts, and regions.",
+    benefits: [
+      "Track daily revenue in real-time",
+      "Identify top performing regions",
+      "Monitor sales rep performance",
+    ],
+    tags: ["Sales", "Daily", "Revenue"],
+    version: "2.1.0",
+    previewImage:
+      "https://placehold.co/600x300/e2e8f0/1e293b?text=Daily+Sales+Report",
     categoryId: 1,
+    subCategory: "1. Daily Tracking",
     type: "table",
     allowedRoles: ["admin", "manager", "sales", "super-admin"],
     allowedLocations: ["New York", "London"],
@@ -115,32 +224,21 @@ export const reports: Report[] = [
         ],
       },
     ],
-    result: [
-      {
-        orderNo: "SO-1001",
-        customer: "ABC Traders",
-        amount: 1200,
-        region: "North",
-      },
-      {
-        orderNo: "SO-1002",
-        customer: "XYZ Corp",
-        amount: 1800,
-        region: "South",
-      },
-      {
-        orderNo: "SO-1003",
-        customer: "Prime Ltd",
-        amount: 950,
-        region: "North",
-      },
-    ],
+    result: [],
   },
   {
     id: 102,
-    name: "Sales, Quotes & Backorders Summary",
+    name: "Sales, Quotes & Backorders",
     description: "Summary of sales quotes and backorders",
+    details:
+      "Overview of all pending quotes and backorders, grouped by customer status.",
+    benefits: ["Track open quotes", "Manage backorders efficiently"],
+    tags: ["Sales", "Quotes", "Inventory"],
+    version: "1.0.5",
+    previewImage:
+      "https://placehold.co/600x300/e2e8f0/1e293b?text=Quotes+Report",
     categoryId: 1,
+    subCategory: "2. Order Management",
     type: "table",
     allowedRoles: ["sales", "manager", "admin", "super-admin"],
     parameters: [
@@ -160,10 +258,33 @@ export const reports: Report[] = [
     result: [],
   },
   {
+    id: 105,
+    name: "Regional Sales Performance",
+    description: "Sales analysis by geographic region",
+    details:
+      "Comparative analysis of sales performance across different territories.",
+    categoryId: 1,
+    subCategory: "3. Regional Analysis",
+    type: "table",
+    allowedRoles: ["admin", "manager"],
+    parameters: [{ id: 1, name: "year", label: "Year", type: "text" }],
+    result: [],
+  },
+
+  // --- Category: Product Sales (ID 2) ---
+  {
     id: 103,
     name: "Product Sales Drilldown",
     description: "Detailed product sales report",
+    details:
+      "Drill down into product sales by category, region, and time period.",
+    benefits: ["Detailed product analysis", "Inventory planning"],
+    tags: ["Product", "Sales", "Drilldown"],
+    version: "3.0.0",
+    previewImage:
+      "https://placehold.co/600x300/e2e8f0/1e293b?text=Product+Drilldown",
     categoryId: 2,
+    subCategory: "1. Performance",
     type: "table",
     allowedRoles: ["admin", "manager", "user", "super-admin"],
     parameters: [
@@ -182,10 +303,66 @@ export const reports: Report[] = [
     result: [],
   },
   {
+    id: 106,
+    name: "Inventory Valuation",
+    description: "Current value of stock on hand",
+    details: "FIFO valuation of current inventory assets.",
+    categoryId: 2,
+    subCategory: "2. Inventory",
+    type: "table",
+    allowedRoles: ["admin"],
+    parameters: [],
+    result: [],
+  },
+  {
+    id: 107,
+    name: "Slow Moving Items",
+    description: "Items with low turnover",
+    details: "Identifies stock that has not moved in X days.",
+    categoryId: 2,
+    subCategory: "2. Inventory",
+    type: "table",
+    allowedRoles: ["manager", "admin"],
+    parameters: [{ id: 1, name: "days", label: "Days Inactive", type: "text" }],
+    result: [],
+  },
+
+  // --- Category: Market Segment (ID 3) ---
+  {
+    id: 108,
+    name: "Demographic Breakdown",
+    description: "Customer age and gender distribution",
+    categoryId: 3,
+    subCategory: "1. Demographics",
+    type: "table",
+    parameters: [],
+    result: [],
+  },
+  {
+    id: 109,
+    name: "Sales by Interest",
+    description: "Revenue based on customer interest tags",
+    categoryId: 3,
+    subCategory: "2. Psychographics",
+    type: "table",
+    parameters: [],
+    result: [],
+  },
+
+  // --- Category: Therapist Sales (ID 4) ---
+  {
     id: 104,
-    name: "Therapist Monthly Transaction History",
+    name: "Therapist Monthly Transaction",
     description: "Monthly transaction history for therapists",
+    details:
+      "Detailed history of transactions per therapist for the selected month.",
+    benefits: ["Performance tracking", "Monthly reconciliation"],
+    tags: ["Therapist", "Transactions", "Monthly"],
+    version: "1.2.0",
+    previewImage:
+      "https://placehold.co/600x300/e2e8f0/1e293b?text=Therapist+Report",
     categoryId: 4,
+    subCategory: "1. Transactions",
     type: "table",
     allowedLocations: ["New York"],
     parameters: [

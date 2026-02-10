@@ -1,19 +1,37 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { reports } from "@/utils/exports";
+import { Badge } from "@/components/ui/badge";
+import { reports, type Report } from "@/utils/exports";
 import { checkPermission } from "@/utils/permissions";
 import DynamicForm from "@/components/reports/DynamicForm";
 import ReportViewer from "@/components/reports/ReportViewer";
+import { setSelectedReportId } from "@/store/slices/reportSlice";
+import {
+  Search,
+  ArrowLeft,
+  CheckCircle2,
+  FileBarChart,
+  Database,
+  Share2,
+  Layers,
+  RefreshCw,
+} from "lucide-react";
+
+const Hr = () => <div className="h-px w-full bg-border my-4" />;
 
 const Dashboard: React.FC = () => {
+  const dispatch = useDispatch();
   const { userdata } = useSelector((state: any) => state.auth);
-  const { selectedReportId } = useSelector((state: any) => state.report);
+  const { selectedReportId, selectedCategoryId, selectedSubCategory } =
+    useSelector((state: any) => state.report);
 
   const [params, setParams] = useState<Record<string, any>>({});
   const [reportResult, setReportResult] = useState<Record<string, any>[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
+  // --- Active Report Logic ---
   const activeReport = useMemo(() => {
     const report = reports.find((r) => r.id === selectedReportId);
     return report && checkPermission(report, userdata) ? report : null;
@@ -22,13 +40,13 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     setParams({});
     setReportResult([]);
+    setShowResults(false);
   }, [selectedReportId]);
 
   const handleRunReport = () => {
     if (!activeReport) return;
-
+    // Mock run report logic - In real app, call API
     let data = [...activeReport.result];
-
     Object.entries(params).forEach(([key, value]) => {
       if (!value) return;
       data = data.filter((row) => {
@@ -40,71 +58,364 @@ const Dashboard: React.FC = () => {
         return String(rowValue).toLowerCase() === String(value).toLowerCase();
       });
     });
-
     setReportResult(data);
+    setShowResults(true);
   };
 
-  return (
-    <div className="flex flex-col h-full gap-4">
-      {/* Top Header & User Info - Optional, keeping for context if needed */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-primary">
-            {activeReport ? "Report View" : "Dashboard"}
-          </h1>
-        </div>
-      </div>
+  // --- Filter and Group Logic ---
+  const filteredReports = useMemo(() => {
+    return reports.filter((r) => {
+      if (!checkPermission(r, userdata)) return false;
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {!activeReport ? (
-          <div className="h-full flex flex-col items-center justify-center border rounded-lg border-dashed bg-muted/20 text-center p-4">
-            <h3 className="text-lg font-semibold">Welcome to the Dashboard</h3>
-            <p className="text-muted-foreground mt-2">
-              Select a category from the top menu, then choose a report from the
-              sidebar.
-            </p>
-          </div>
-        ) : (
-          <Card className="h-full flex flex-col border-none shadow-none bg-transparent sm:bg-card sm:border sm:shadow-sm">
-            <CardHeader className="px-0 sm:px-6 shrink-0">
-              <CardTitle>{activeReport.name}</CardTitle>
-              <div className="text-sm text-muted-foreground">
+      const matchesCategory =
+        selectedCategoryId !== null
+          ? r.categoryId === selectedCategoryId
+          : true;
+
+      const matchesSubCategory = selectedSubCategory
+        ? (r.subCategory || "General Reports") === selectedSubCategory
+        : true;
+
+      return matchesCategory && matchesSubCategory;
+    });
+  }, [selectedCategoryId, selectedSubCategory, userdata]);
+
+  const groupedReports = useMemo(() => {
+    const groups: Record<string, Report[]> = {};
+    filteredReports.forEach((r) => {
+      const sub = r.subCategory || "General Reports";
+      if (!groups[sub]) groups[sub] = [];
+      groups[sub].push(r);
+    });
+    // Sort keys just to be consistent
+    return Object.keys(groups)
+      .sort()
+      .reduce(
+        (acc, key) => {
+          acc[key] = groups[key];
+          return acc;
+        },
+        {} as Record<string, Report[]>,
+      );
+  }, [filteredReports]);
+
+  const handleReportSelect = (id: number) => {
+    dispatch(setSelectedReportId(id));
+  };
+
+  // --- DETAIL VIEW ---
+  if (activeReport) {
+    return (
+      <div className="h-full flex flex-col gap-6 overflow-y-auto p-4 sm:p-6 bg-background">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b pb-6">
+          <div className="flex gap-4">
+            <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+              {/* Could allow dynamic icons per report in future */}
+              <FileBarChart className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-2xl font-bold tracking-tight text-primary">
+                  {activeReport.name}
+                </h1>
+              </div>
+              <p className="text-lg text-muted-foreground">
                 {activeReport.description}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 px-0 sm:px-6 space-y-6 overflow-auto">
-              <div className="max-w-xl">
-                <DynamicForm
-                  parameters={activeReport.parameters}
-                  values={params}
-                  onChange={(k, v) =>
-                    setParams((prev) => ({ ...prev, [k]: v }))
-                  }
-                />
-                <div className="mt-4">
-                  <Button
-                    onClick={handleRunReport}
-                    className="w-full sm:w-auto"
-                  >
-                    Generate Report
-                  </Button>
-                </div>
-              </div>
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => dispatch(setSelectedReportId(null))}
+            className="md:self-start"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Store
+          </Button>
+        </div>
 
-              {/* Results */}
-              <div className="border-t pt-6">
-                {reportResult.length > 0 ? (
-                  <ReportViewer data={reportResult} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* LEFT COLUMN: Overview & Details */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Who is this for */}
+            <div className="prose max-w-none">
+              <h3 className="text-lg font-semibold mb-2">
+                Who is this report for?
+              </h3>
+              <p className="text-muted-foreground">
+                {(activeReport.allowedRoles || ["Analysts", "Managers"]).join(
+                  ", ",
+                )}
+              </p>
+            </div>
+
+            <Hr />
+
+            {/* Benefits */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Benefits</h3>
+              <ul className="space-y-2">
+                {(
+                  activeReport.benefits || [
+                    "Standardize reporting",
+                    "View real-time data",
+                  ]
+                ).map((benefit, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-sm text-foreground/80"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mt-1 text-green-600 shrink-0" />
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <Hr />
+
+            {/* Overview / Preview */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Overview</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {activeReport.details || activeReport.description}
+              </p>
+
+              {/* Preview Image Area */}
+              <div className="border rounded-xl overflow-hidden bg-secondary/20 shadow-inner">
+                {activeReport.previewImage ? (
+                  <img
+                    src={activeReport.previewImage}
+                    alt="Current Report Preview"
+                    className="w-full h-auto object-cover max-h-100"
+                  />
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    {Object.keys(params).length > 0
-                      ? "No records found matching your criteria."
-                      : "Set parameters and click Generate to view data."}
+                  <div className="h-64 flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <FileBarChart className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No preview available</p>
+                    </div>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Render Report Result if generated */}
+            {showResults && (
+              <div className="mt-8 pt-8 border-t">
+                <h3 className="text-xl font-bold mb-4">Report Results</h3>
+                <div className="rounded-md border p-1 bg-card">
+                  {reportResult.length > 0 ? (
+                    <ReportViewer data={reportResult} />
+                  ) : (
+                    <div className="p-8 text-center text-muted-foreground">
+                      No data found for the selected parameters.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: Action & Metadata */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Action Card / Parameter Form */}
+            <Card className="border-primary/20 shadow-lg ring-1 ring-primary/5">
+              <div className="bg-primary text-primary-foreground px-6 py-3 rounded-t-xl font-bold text-center tracking-wide">
+                RUN THIS REPORT
+              </div>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    <Layers className="h-4 w-4" /> Parameters
+                  </div>
+                  <DynamicForm
+                    parameters={activeReport.parameters}
+                    values={params}
+                    onChange={(k, v) =>
+                      setParams((prev) => ({ ...prev, [k]: v }))
+                    }
+                  />
+                </div>
+                <Button
+                  onClick={handleRunReport}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 shadow-md transition-all active:scale-95"
+                >
+                  GENERATE REPORT
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Included in App */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-card-foreground">
+                  Included in the report
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Database className="h-4 w-4 text-primary" /> Data Source
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <FileBarChart className="h-4 w-4 text-primary" /> Dashboard
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Share2 className="h-4 w-4 text-primary" /> Exportable
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Layers className="h-4 w-4 text-primary" /> Drilldown
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Metadata */}
+            <div className="bg-muted/30 p-4 rounded-lg space-y-4">
+              <div>
+                <h4 className="font-medium text-xs text-muted-foreground uppercase mb-2">
+                  Setup Effort
+                </h4>
+                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-linear-to-r from-green-400 to-emerald-600 w-[15%]" />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground mt-1 uppercase font-semibold">
+                  <span>Low</span>
+                  <span>High</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-medium text-xs text-muted-foreground uppercase">
+                  Tags
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {(activeReport.tags || ["Business Analytics", "Data"]).map(
+                    (tag) => (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="font-normal text-xs px-2 py-0.5"
+                      >
+                        {tag}
+                      </Badge>
+                    ),
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- STORE VIEW (Grid with Sub-Categories) ---
+  return (
+    <div className="flex flex-col h-full bg-background relative isolate">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/5 via-background to-background"></div>
+
+      {/* 1. Header with Search */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 sm:p-8 pb-4">
+        <div className="flex items-center gap-5 self-start md:self-auto">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+              Dashboard
+            </h1>
+            <p className="text-base text-muted-foreground font-medium">
+              Overview & Reports
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <Button
+            onClick={() => window.location.reload()}
+            className="h-12 px-6 rounded-full shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all hover:shadow-md active:scale-95"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh Data
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-8">
+        {Object.keys(groupedReports).length > 0 ? (
+          <div className="space-y-12">
+            {Object.entries(groupedReports).map(([subCat, reports]) => (
+              <div key={subCat} className="space-y-5">
+                {/* Sub Category Header */}
+                <div className="flex items-center gap-3">
+                  <div className="bg-secondary text-secondary-foreground px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider border border-border shadow-sm">
+                    {subCat}
+                  </div>
+                  <div className="h-px flex-1 bg-linear-to-r from-border to-transparent" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                  {reports.map((report) => (
+                    <Card
+                      key={report.id}
+                      className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden border-border/60 bg-card hover:border-primary/50 relative"
+                      onClick={() => handleReportSelect(report.id)}
+                    >
+                      {/* Hover Tooltip Overlay */}
+                      <div className="absolute inset-0 bg-primary/95 text-primary-foreground p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-center items-center text-center pointer-events-none backdrop-blur-sm">
+                        <FileBarChart className="h-10 w-10 mb-3 opacity-80" />
+                        <h4 className="font-bold text-lg mb-2 leading-tight">
+                          {report.name}
+                        </h4>
+                        <p className="text-sm line-clamp-3 text-primary-foreground/90">
+                          {report.details || report.description}
+                        </p>
+                        <div className="mt-5 text-xs font-bold uppercase tracking-widest border border-primary-foreground/30 px-4 py-2 rounded-full bg-white/10">
+                          Run Report
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row p-6 gap-5 items-start h-full">
+                        <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                          {/* Use report type icon if available, else default */}
+                          <FileBarChart className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors truncate">
+                            {report.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                            {report.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-muted/30 px-6 py-3 border-t flex items-center justify-between text-xs text-muted-foreground group-hover:bg-primary/5 transition-colors">
+                        <div className="flex gap-2 items-center">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                          <span>Live Data</span>
+                        </div>
+                        <div className="font-medium opacity-60">
+                          v{report.version || "1.0"}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-96 text-muted-foreground opacity-60">
+            <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center mb-6">
+              <Search className="h-10 w-10" />
+            </div>
+            <p className="text-2xl font-light text-foreground">
+              No reports available
+            </p>
+            <p className="text-base mt-2 max-w-sm text-center">
+              There are no reports in this category. Please select a different
+              category from the sidebar.
+            </p>
+          </div>
         )}
       </div>
     </div>

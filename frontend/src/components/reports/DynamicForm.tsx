@@ -8,6 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ReportParameter } from "@/utils/exports";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 interface Props {
   parameters: ReportParameter[];
@@ -16,8 +18,32 @@ interface Props {
 }
 
 export default function DynamicForm({ parameters, values, onChange }: Props) {
+  const { userdata } = useSelector((state: any) => state.auth);
+
+  // Auto-fill Logic for Location/Role based parameters
+  useEffect(() => {
+    if (!userdata || !userdata.profile) return;
+
+    parameters.forEach((p) => {
+      // Check if parameter name matches profile fields for auto-selection
+      // This addresses the requirement: "parameter field should load the value" based on user info
+      const lowerName = p.name.toLowerCase();
+      if (!values[p.name]) {
+        if (lowerName === "region" && userdata.profile.region) {
+          onChange(p.name, userdata.profile.region);
+        }
+        if (lowerName === "state" && userdata.profile.state) {
+          onChange(p.name, userdata.profile.state);
+        }
+        if (lowerName === "city" && userdata.profile.city) {
+          onChange(p.name, userdata.profile.city);
+        }
+      }
+    });
+  }, [parameters, userdata]);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {parameters.map((p) => (
         <div key={p.id} className="space-y-1">
           <Label>{p.label}</Label>

@@ -1,6 +1,8 @@
 export interface ReportCategory {
   id: number;
   name: string;
+  image?: string;
+  description?: string;
 }
 
 export interface ReportParameterOption {
@@ -21,7 +23,9 @@ export interface Report {
   id: number;
   name: string;
   description: string;
+  details?: string;
   categoryId: number;
+  subCategory?: string;
   type: string;
   parameters: ReportParameter[];
   result: any[];
