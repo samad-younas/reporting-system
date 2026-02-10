@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { reports, reportCategories, type Report } from "@/utils/exports";
@@ -20,6 +21,7 @@ import { Crystal } from "crystis-react";
 const Hr = () => <div className="h-px w-full bg-border my-4" />;
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { userdata } = useSelector((state: any) => state.auth);
   const { selectedReportId, selectedCategoryId, selectedSubCategory } =
@@ -272,13 +274,15 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div>
-          <Button
-            onClick={() => console.log("Add New Report")}
-            className="h-12 px-6 rounded-full shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all hover:shadow-md active:scale-95"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Report
-          </Button>
+          {["admin", "super-admin"].includes(userdata?.user_type) && (
+            <Button
+              onClick={() => navigate("/report-management")}
+              className="h-12 px-6 shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all hover:shadow-md active:scale-95"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Report
+            </Button>
+          )}
         </div>
       </div>
 

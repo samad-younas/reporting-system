@@ -306,31 +306,63 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   />
                   SSRS Reports
                 </button>
-
-                <button
-                  onClick={() => {
-                    navigate("/user-management");
-                    if (window.innerWidth < 768 && onClose) onClose();
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
-                    location.pathname === "/user-management"
-                      ? "bg-secondary text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                  )}
-                >
-                  <Users
-                    className={cn(
-                      "w-4 h-4 transition-colors",
-                      location.pathname === "/user-management"
-                        ? "text-primary"
-                        : "text-muted-foreground group-hover:text-foreground",
-                    )}
-                  />
-                  User Management
-                </button>
               </div>
             </div>
+
+            {/* Admin Section */}
+            {["admin", "super-admin"].includes(userdata?.user_type) && (
+              <div>
+                <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider my-2 px-2 mt-4">
+                  Admin
+                </h3>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      navigate("/user-management");
+                      if (window.innerWidth < 768 && onClose) onClose();
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                      location.pathname === "/user-management"
+                        ? "bg-secondary text-foreground font-semibold"
+                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    <Users
+                      className={cn(
+                        "w-4 h-4 transition-colors",
+                        location.pathname === "/user-management"
+                          ? "text-primary"
+                          : "text-muted-foreground group-hover:text-foreground",
+                      )}
+                    />
+                    Users
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/report-management");
+                      if (window.innerWidth < 768 && onClose) onClose();
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                      location.pathname === "/report-management"
+                        ? "bg-secondary text-foreground font-semibold"
+                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    <FileText
+                      className={cn(
+                        "w-4 h-4 transition-colors",
+                        location.pathname === "/report-management"
+                          ? "text-primary"
+                          : "text-muted-foreground group-hover:text-foreground",
+                      )}
+                    />
+                    Reports
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

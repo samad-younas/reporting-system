@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const UserManagement = lazy(() => import("./pages/ManageUser"));
+const ReportManagement = lazy(() => import("./pages/ManageReports"));
 const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
 const SSRSReports = lazy(() => import("./pages/SSRSReports"));
@@ -36,6 +37,7 @@ const App: React.FC = () => {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="ssrs-reports" element={<SSRSReports />} />
           <Route path="user-management" element={<UserManagement />} />
+          <Route path="report-management" element={<ReportManagement />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Route>
