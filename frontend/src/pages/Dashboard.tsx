@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { reports, reportCategories, type Report } from "@/utils/exports";
 import { checkPermission } from "@/utils/permissions";
 import DynamicForm from "@/components/reports/DynamicForm";
-import ReportViewer from "@/components/reports/ReportViewer";
 import { setSelectedReportId } from "@/store/slices/reportSlice";
 import {
   Search,
@@ -16,6 +15,7 @@ import {
   Layers,
   Plus,
 } from "lucide-react";
+import { Crystal } from "crystis-react";
 
 const Hr = () => <div className="h-px w-full bg-border my-4" />;
 
@@ -26,8 +26,6 @@ const Dashboard: React.FC = () => {
     useSelector((state: any) => state.report);
 
   const [params, setParams] = useState<Record<string, any>>({});
-  const [reportResult, setReportResult] = useState<Record<string, any>[]>([]);
-  const [showResults, setShowResults] = useState(false);
 
   // --- Active Report Logic ---
   const activeReport = useMemo(() => {
@@ -37,11 +35,9 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     setParams({});
-    setReportResult([]);
-    setShowResults(false);
   }, [selectedReportId]);
 
-  const handleRunReport = () => {
+  const handleRunReport = async () => {
     if (!activeReport) return;
     // Mock run report logic - In real app, call API
     let data = [...activeReport.result];
@@ -56,8 +52,20 @@ const Dashboard: React.FC = () => {
         return String(rowValue).toLowerCase() === String(value).toLowerCase();
       });
     });
-    setReportResult(data);
-    setShowResults(true);
+
+    try {
+      const crystal = new Crystal();
+      crystal.tcode = "CF9269";
+      crystal.tucode = "20AD";
+      // Ensure the report file exists in the public/reports folder with name {reportId}.rpt
+      crystal.trptfilePath = `/reports/${activeReport.id}.rpt`;
+      crystal.tjsonstring = JSON.stringify(data);
+
+      await crystal.showReport();
+    } catch (error) {
+      console.error("Failed to load report", error);
+      alert("Failed to load report. Please ensure the report file exists.");
+    }
   };
 
   // --- Filter and Group Logic ---
@@ -174,21 +182,7 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Render Report Result if generated */}
-            {showResults && (
-              <div className="mt-8 pt-8 border-t">
-                <h3 className="text-xl font-bold mb-4">Report Results</h3>
-                <div className="rounded-md border p-1 bg-card">
-                  {reportResult.length > 0 ? (
-                    <ReportViewer data={reportResult} />
-                  ) : (
-                    <div className="p-8 text-center text-muted-foreground">
-                      No data found for the selected parameters.
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Report Results rendering removed handled by Crystal */}
           </div>
 
           {/* RIGHT COLUMN: Action & Metadata */}
