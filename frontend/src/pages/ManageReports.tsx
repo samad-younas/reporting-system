@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Search, FileText } from "lucide-react";
 import { SimpleDialog } from "@/components/ui/simple-dialog";
@@ -12,6 +13,7 @@ import { toast } from "react-toastify";
 import { reportCategories, reports as dummyReports } from "@/utils/exports";
 
 const ManageReports: React.FC = () => {
+  const location = useLocation();
   // --- Data Fetching ---
   // In a real scenario, this would fetch from the API.
   // For now, if the API isn't ready, it might return null/error.
@@ -55,6 +57,17 @@ const ManageReports: React.FC = () => {
   const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
+
+  // Check for navigation state to open create modal
+  useEffect(() => {
+    if (location.state?.openCreate) {
+      handleCreateReport();
+      // Clear state to prevent reopening on refresh?
+      // React Router handles state per transition, but standard safely is just to open it.
+      // Ideally we would replace history but let's keep it simple.
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Initialize reports from fetch
   /*

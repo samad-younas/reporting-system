@@ -276,7 +276,9 @@ const Dashboard: React.FC = () => {
         <div>
           {["admin", "super-admin"].includes(userdata?.user_type) && (
             <Button
-              onClick={() => navigate("/report-management")}
+              onClick={() =>
+                navigate("/report-management", { state: { openCreate: true } })
+              }
               className="h-12 px-6 shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all hover:shadow-md active:scale-95"
             >
               <Plus className="mr-2 h-4 w-4" />
