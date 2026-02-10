@@ -78,22 +78,17 @@ export interface ReportCategory {
   allowedCities?: string[];
   allowedCostCenters?: string[];
   allowedLocations?: string[];
+  icon?: React.ElementType;
 }
 
 export const reportCategories: ReportCategory[] = [
-  {
-    id: 0,
-    name: "Dashboards",
-    image: "https://placehold.co/600x400?text=Executive+Dashboards",
-    description: "High-level visual overviews of business performance.",
-    allowedRoles: ["admin", "manager", "super-admin"],
-  },
   {
     id: 1,
     name: "Customer Sales",
     image: "https://placehold.co/600x400?text=Customer+Sales",
     description: "Analyze customer purchasing patterns and sales performance.",
     allowedRoles: ["admin", "manager", "sales", "super-admin"],
+    icon: Users,
   },
   {
     id: 2,
@@ -101,6 +96,7 @@ export const reportCategories: ReportCategory[] = [
     image: "https://placehold.co/600x400?text=Product+Sales",
     description: "Detailed insights into product performance and inventory.",
     allowedRoles: ["admin", "manager", "sales", "super-admin"],
+    icon: Box,
   },
   {
     id: 3,
@@ -108,6 +104,7 @@ export const reportCategories: ReportCategory[] = [
     image: "https://placehold.co/600x400?text=Market+Segment",
     description: "Sales breakdown by market segments and demographics.",
     allowedRoles: ["admin", "manager", "user"],
+    icon: PieChart,
   },
   {
     id: 4,
@@ -115,6 +112,7 @@ export const reportCategories: ReportCategory[] = [
     image: "https://placehold.co/600x400?text=Therapist+Sales",
     description: "Track therapist performance and transaction history.",
     allowedLocations: ["New York"],
+    icon: UserCog,
   },
   {
     id: 5,
@@ -122,58 +120,11 @@ export const reportCategories: ReportCategory[] = [
     image: "https://placehold.co/600x400?text=Finance",
     description: "P&L, Balance Sheets, and financial statements.",
     allowedRoles: ["admin", "super-admin"],
+    icon: Banknote,
   },
 ];
 
 export const reports: Report[] = [
-  // --- Category: Dashboards (ID 0) ---
-  {
-    id: 1001,
-    name: "Executive Summary",
-    description: "High-level KPI overview for executives",
-    details:
-      "Real-time dashboard showing core business metrics including Revenue, EBITDA, and Customer Acquisition.",
-    benefits: ["Instant business health check", "Trend analysis"],
-    tags: ["Executive", "KPI", "Visual"],
-    version: "1.0",
-    previewImage:
-      "https://placehold.co/600x300/1e293b/ffffff?text=Executive+Dashboard",
-    categoryId: 0,
-    subCategory: "1. Strategic Overview",
-    type: "table",
-    allowedRoles: ["admin", "super-admin"],
-    parameters: [
-      {
-        id: 1,
-        name: "fiscalYear",
-        label: "Fiscal Year",
-        type: "select",
-        options: [
-          { id: "2024", name: "2024" },
-          { id: "2023", name: "2023" },
-        ],
-      },
-    ],
-    result: [],
-  },
-  {
-    id: 1002,
-    name: "Operational Real-time",
-    description: "Live operational metrics",
-    details: "Warehouse status, order backlog, and shipping performance.",
-    benefits: ["Identify bottlenecks", "Resource allocation"],
-    tags: ["Ops", "Real-time"],
-    version: "1.1",
-    previewImage:
-      "https://placehold.co/600x300/1e293b/ffffff?text=Ops+Dashboard",
-    categoryId: 0,
-    subCategory: "2. Operations",
-    type: "table",
-    allowedRoles: ["manager", "admin"],
-    parameters: [],
-    result: [],
-  },
-
   // --- Category: Customer Sales (ID 1) ---
   {
     id: 101,

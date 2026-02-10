@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { reports, type Report } from "@/utils/exports";
+import { reports, reportCategories, type Report } from "@/utils/exports";
 import { checkPermission } from "@/utils/permissions";
 import DynamicForm from "@/components/reports/DynamicForm";
 import ReportViewer from "@/components/reports/ReportViewer";
@@ -80,23 +80,13 @@ const Dashboard: React.FC = () => {
     });
   }, [selectedCategoryId, selectedSubCategory, userdata]);
 
-  const groupedReports = useMemo(() => {
-    const groups: Record<string, Report[]> = {};
+  const reportsByCategory = useMemo(() => {
+    const groups: Record<number, Report[]> = {};
     filteredReports.forEach((r) => {
-      const sub = r.subCategory || "General Reports";
-      if (!groups[sub]) groups[sub] = [];
-      groups[sub].push(r);
+      if (!groups[r.categoryId]) groups[r.categoryId] = [];
+      groups[r.categoryId].push(r);
     });
-    // Sort keys just to be consistent
-    return Object.keys(groups)
-      .sort()
-      .reduce(
-        (acc, key) => {
-          acc[key] = groups[key];
-          return acc;
-        },
-        {} as Record<string, Report[]>,
-      );
+    return groups;
   }, [filteredReports]);
 
   const handleReportSelect = (id: number) => {
@@ -340,68 +330,76 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-8">
-        {Object.keys(groupedReports).length > 0 ? (
+        {Object.keys(reportsByCategory).length > 0 ? (
           <div className="space-y-12">
-            {Object.entries(groupedReports).map(([subCat, reports]) => (
-              <div key={subCat} className="space-y-5">
-                {/* Sub Category Header */}
-                <div className="flex items-center gap-3">
-                  <div className="bg-secondary text-secondary-foreground px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider border border-border shadow-sm">
-                    {subCat}
+            {Object.entries(reportsByCategory).map(([catIdStr, reports]) => {
+              const catId = parseInt(catIdStr);
+              const category = reportCategories.find((c) => c.id === catId);
+              const CatIcon = category?.icon || Layers;
+
+              return (
+                <div key={catId} className="space-y-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-xl font-bold text-foreground">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <CatIcon className="w-5 h-5 text-primary" />
+                      </div>
+                      {category?.name || "Unknown Category"}
+                    </div>
+                    <div className="h-px flex-1 bg-linear-to-r from-border to-transparent" />
                   </div>
-                  <div className="h-px flex-1 bg-linear-to-r from-border to-transparent" />
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                  {reports.map((report) => (
-                    <Card
-                      key={report.id}
-                      className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden border-border/60 bg-card hover:border-primary/50 relative"
-                      onClick={() => handleReportSelect(report.id)}
-                    >
-                      {/* Hover Tooltip Overlay */}
-                      <div className="absolute inset-0 bg-primary/95 text-primary-foreground p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-center items-center text-center pointer-events-none backdrop-blur-sm">
-                        <FileBarChart className="h-10 w-10 mb-3 opacity-80" />
-                        <h4 className="font-bold text-lg mb-2 leading-tight">
-                          {report.name}
-                        </h4>
-                        <p className="text-sm line-clamp-3 text-primary-foreground/90">
-                          {report.details || report.description}
-                        </p>
-                        <div className="mt-5 text-xs font-bold uppercase tracking-widest border border-primary-foreground/30 px-4 py-2 rounded-full bg-white/10">
-                          Run Report
-                        </div>
-                      </div>
-
-                      <div className="flex flex-row p-6 gap-5 items-start h-full">
-                        <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                          {/* Use report type icon if available, else default */}
-                          <FileBarChart className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors truncate">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                    {reports.map((report) => (
+                      <Card
+                        key={report.id}
+                        className="cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden border-border/60 bg-card hover:border-primary/50 relative"
+                        onClick={() => handleReportSelect(report.id)}
+                      >
+                        {/* Hover Tooltip Overlay */}
+                        <div className="absolute inset-0 bg-primary/95 text-primary-foreground p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex flex-col justify-center items-center text-center pointer-events-none backdrop-blur-sm">
+                          <FileBarChart className="h-10 w-10 mb-3 opacity-80" />
+                          <h4 className="font-bold text-lg mb-2 leading-tight">
                             {report.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                            {report.description}
+                          </h4>
+                          <p className="text-sm line-clamp-3 text-primary-foreground/90">
+                            {report.details || report.description}
                           </p>
+                          <div className="mt-5 text-xs font-bold uppercase tracking-widest border border-primary-foreground/30 px-4 py-2 rounded-full bg-white/10">
+                            Run Report
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="bg-muted/30 px-6 py-3 border-t flex items-center justify-between text-xs text-muted-foreground group-hover:bg-primary/5 transition-colors">
-                        <div className="flex gap-2 items-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                          <span>Live Data</span>
+                        <div className="flex flex-row p-6 gap-5 items-start h-full">
+                          <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            {/* Use report type icon if available, else default */}
+                            <FileBarChart className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors truncate">
+                              {report.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                              {report.description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="font-medium opacity-60">
-                          v{report.version || "1.0"}
+
+                        <div className="bg-muted/30 px-6 py-3 border-t flex items-center justify-between text-xs text-muted-foreground group-hover:bg-primary/5 transition-colors">
+                          <div className="flex gap-2 items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            <span>Live Data</span>
+                          </div>
+                          <div className="font-medium opacity-60">
+                            v{report.version || "1.0"}
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-96 text-muted-foreground opacity-60">

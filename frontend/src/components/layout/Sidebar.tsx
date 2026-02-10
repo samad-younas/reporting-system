@@ -153,33 +153,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
           <div>
             <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-              Main
+              Reports
             </h3>
             <button
               onClick={handleHomeClick}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group mb-1",
                 selectedCategoryId === null
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "bg-secondary text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
             >
               <LayoutGrid
                 className={cn(
-                  "w-4 h-4",
+                  "w-4 h-4 transition-colors",
                   selectedCategoryId === null
-                    ? ""
-                    : "group-hover:scale-110 transition-transform",
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground",
                 )}
               />
-              Dashboard
+              All Reports
             </button>
-          </div>
-
-          <div>
-            <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-              Reports
-            </h3>
             <div className="space-y-1">
               {categoryTree.map((cat) => {
                 if (!cat) return null;
