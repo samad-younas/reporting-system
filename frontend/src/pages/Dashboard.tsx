@@ -27,7 +27,6 @@ const Dashboard: React.FC = () => {
 
   const [params, setParams] = useState<Record<string, any>>({});
 
-  // --- Active Report Logic ---
   const activeReport = useMemo(() => {
     const report = reports.find((r) => r.id === selectedReportId);
     return report && checkPermission(report, userdata) ? report : null;
@@ -39,7 +38,6 @@ const Dashboard: React.FC = () => {
 
   const handleRunReport = async () => {
     if (!activeReport) return;
-    // Mock run report logic - In real app, call API
     let data = [...activeReport.result];
     Object.entries(params).forEach(([key, value]) => {
       if (!value) return;
@@ -57,7 +55,6 @@ const Dashboard: React.FC = () => {
       const crystal = new Crystal();
       crystal.tcode = "CF9269";
       crystal.tucode = "20AD";
-      // Ensure the report file exists in the public/reports folder with name {reportId}.rpt
       crystal.trptfilePath = `/reports/${activeReport.id}.rpt`;
       crystal.tjsonstring = JSON.stringify(data);
 
@@ -68,7 +65,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // --- Filter and Group Logic ---
   const filteredReports = useMemo(() => {
     return reports.filter((r) => {
       if (!checkPermission(r, userdata)) return false;
@@ -99,7 +95,6 @@ const Dashboard: React.FC = () => {
     dispatch(setSelectedReportId(id));
   };
 
-  // --- DETAIL VIEW ---
   if (activeReport) {
     const CategoryIcon =
       reportCategories.find((c) => c.id === activeReport.categoryId)?.icon ||
