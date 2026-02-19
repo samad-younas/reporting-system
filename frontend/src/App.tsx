@@ -13,6 +13,8 @@ const ReportManagement = lazy(() => import("./pages/ManageReports"));
 const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
 const SSRSReports = lazy(() => import("./pages/SSRSReports"));
+const RecentReports = lazy(() => import("./pages/RecentReports"));
+const FavouriteReports = lazy(() => import("./pages/FavouriteReports"));
 import { LoadingSpinner } from "./components/public/LoadingSpinner";
 import { DashboardLayout } from "./components/layout/DashBoardLayout";
 import { useSelector } from "react-redux";
@@ -40,6 +42,8 @@ const App: React.FC = () => {
           <Route path="ssrs-reports" element={<SSRSReports />} />
           <Route path="user-management" element={<UserManagement />} />
           <Route path="report-management" element={<ReportManagement />} />
+          <Route path="favourites" element={<FavouriteReports />} />
+          <Route path="recent-reports" element={<RecentReports />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Route>
