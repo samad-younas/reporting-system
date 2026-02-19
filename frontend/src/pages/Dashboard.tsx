@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,20 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Plus,
   FileText,
@@ -48,8 +62,77 @@ const miniBars = [
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+
+  // State for reorderable Quick Actions and Favorite Reports
+  const [quickActions, setQuickActions] = useState([
+    {
+      id: "sales-summary",
+      icon: <FileText size={18} />,
+      title: "Sales Summary",
+      subtitle: "Last run 3 days ago",
+    },
+    {
+      id: "regional-performance",
+      icon: <BarChart3 size={18} />,
+      title: "Regional Performance",
+      subtitle: "Last run 2 days ago",
+    },
+    {
+      id: "staff-productivity",
+      icon: <Users size={18} />,
+      title: "Staff Productivity",
+      subtitle: "Last run 1 week ago",
+    },
+  ]);
+
+  const [favoriteReports, setFavoriteReports] = useState([
+    {
+      id: "product-sales-drilldown",
+      icon: <FileText size={18} />,
+      title: "Product Sales Drilldown",
+      subtitle: "Last run 3 days ago",
+    },
+    {
+      id: "inventory-analysis",
+      icon: <BarChart3 size={18} />,
+      title: "Inventory Analysis",
+      subtitle: "Last run 1 week ago",
+    },
+  ]);
+
+  // DnD-kit setup
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+  );
+
+  // Handlers for Quick Actions
+  const handleQuickActionsDragEnd = (event: any) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setQuickActions((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  // Handlers for Favorite Reports
+  const handleFavoriteReportsDragEnd = (event: any) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setFavoriteReports((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#f4f6f9] p-8">
+    <div className="min-h-screen p-8">
       {/* HEADER */}
       <div className="flex flex-col xl:flex-row justify-between gap-6 mb-10">
         <div>
@@ -84,41 +167,56 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* LEFT SECTION */}
         <div className="xl:col-span-2 space-y-6">
-          {/* Quick Actions */}
+          {/* Quick Actions (DnD) */}
           <SectionCard title="Quick Actions">
-            <div className="grid md:grid-cols-3 gap-4">
-              <ActionTile
-                icon={<FileText size={18} />}
-                title="Sales Summary"
-                subtitle="Last run 3 days ago"
-              />
-              <ActionTile
-                icon={<BarChart3 size={18} />}
-                title="Regional Performance"
-                subtitle="Last run 2 days ago"
-              />
-              <ActionTile
-                icon={<Users size={18} />}
-                title="Staff Productivity"
-                subtitle="Last run 1 week ago"
-              />
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleQuickActionsDragEnd}
+            >
+              <SortableContext
+                items={quickActions.map((a) => a.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="grid md:grid-cols-3 gap-4">
+                  {quickActions.map((action) => (
+                    <SortableActionTile
+                      key={action.id}
+                      id={action.id}
+                      icon={action.icon}
+                      title={action.title}
+                      subtitle={action.subtitle}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </SectionCard>
 
-          {/* Favorite Reports */}
+          {/* Favorite Reports (DnD) */}
           <SectionCard title="Favorite Reports">
-            <div className="grid md:grid-cols-2 gap-4">
-              <ActionTile
-                icon={<FileText size={18} />}
-                title="Product Sales Drilldown"
-                subtitle="Last run 3 days ago"
-              />
-              <ActionTile
-                icon={<BarChart3 size={18} />}
-                title="Inventory Analysis"
-                subtitle="Last run 1 week ago"
-              />
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleFavoriteReportsDragEnd}
+            >
+              <SortableContext
+                items={favoriteReports.map((a) => a.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="grid md:grid-cols-2 gap-4">
+                  {favoriteReports.map((action) => (
+                    <SortableActionTile
+                      key={action.id}
+                      id={action.id}
+                      icon={action.icon}
+                      title={action.title}
+                      subtitle={action.subtitle}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </SectionCard>
 
           {/* Revenue Trend */}
@@ -200,6 +298,38 @@ const Dashboard: React.FC = () => {
       </div>
     </div>
   );
+  // SortableActionTile for DnD
+  function SortableActionTile({
+    id,
+    icon,
+    title,
+    subtitle,
+  }: {
+    id: string;
+    icon: React.ReactNode;
+    title: string;
+    subtitle: string;
+  }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id });
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+      cursor: "grab",
+    };
+    return (
+      <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <ActionTile icon={icon} title={title} subtitle={subtitle} />
+      </div>
+    );
+  }
 };
 
 /* ================= REUSABLE COMPONENTS ================= */

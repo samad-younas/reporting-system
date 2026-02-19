@@ -85,10 +85,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-base leading-none tracking-tight">
-                Enterprise
+                Company Logo
               </span>
               <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">
-                Reporting
+                slogan of company logo
               </span>
             </div>
           </div>
@@ -165,6 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 const isSelected =
                   location.pathname === "/all-reports" &&
                   selectedCategoryId === cat.id;
+                const CatIcon = cat.icon || FileText;
                 return (
                   <button
                     key={cat.id}
@@ -176,7 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     )}
                   >
-                    <FileText
+                    <CatIcon
                       className={cn(
                         "w-4 h-4 transition-colors",
                         isSelected
