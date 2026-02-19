@@ -315,43 +315,45 @@ const AllReports: React.FC = () => {
                     <div className="h-px flex-1 bg-linear-to-r from-border to-transparent" />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                    {reports.map((report) => (
-                      <Card
-                        key={report.id}
-                        className="cursor-pointer group relative border border-slate-100 shadow-sm transition-all duration-300 bg-white h-32 overflow-hidden"
-                        onClick={() => handleReportSelect(report.id)}
-                      >
-                        {/* Default State: Clean White Card - Fades out on hover */}
-                        <div className="p-5 h-full flex flex-col justify-between relative z-10 group-hover:opacity-0 transition-opacity duration-200">
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                    {reports.map((report) => {
+                      const CatIcon = category?.icon || Layers;
+                      return (
+                        <Card
+                          key={report.id}
+                          className={`cursor-pointer group relative border border-slate-200 shadow-lg rounded-2xl h-44 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/60 ${report.isNew ? "ring-2 ring-primary/30 ring-offset-2 bg-gradient-to-br from-primary/5 to-white" : "bg-white"}`}
+                          onClick={() => handleReportSelect(report.id)}
+                        >
+                          {/* New badge - professional, subtle */}
+                          {report.isNew && (
+                            <span className="absolute top-3 right-3 z-20 bg-primary/10 text-primary text-[10px] font-semibold px-2 py-0.5 rounded-full border border-primary/20 tracking-wide uppercase shadow-sm">
+                              New
+                            </span>
+                          )}
+                          <div className="flex items-center gap-3 p-4 pb-2">
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                              <CatIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-base text-foreground truncate mb-1">
+                                {report.name}
+                              </h3>
+                              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                 {report.subCategories
                                   ?.map((s) => s.replace(/^\d+\.\s*/, ""))
                                   .join(", ") || "General"}
                               </span>
                             </div>
-                            <h3 className="font-extrabold text-sm leading-snug text-slate-800 line-clamp-2">
-                              {report.name}
-                            </h3>
                           </div>
-                        </div>
-
-                        {/* Hover State: Blue Overlay Slide Up */}
-                        <div className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out z-0" />
-
-                        {/* Overlay Content (Only visible on hover) */}
-                        <div className="absolute inset-0 p-5 flex flex-col justify-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 z-20">
-                          <p className="text-xs text-primary-foreground/90 leading-relaxed line-clamp-4 font-medium">
-                            {report.description}
-                          </p>
-                          <div className="mt-4 flex items-center justify-center gap-2 text-[10px] font-bold text-white uppercase tracking-wider">
-                            Show Report <ArrowRight className="h-3 w-3" />
+                          <div className="px-4 pb-4 flex-1 flex flex-col justify-between">
+                            <p className="text-sm text-muted-foreground line-clamp-3 mb-2">
+                              {report.description}
+                            </p>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                          <div className="absolute inset-0 rounded-2xl border-2 border-primary opacity-0 group-hover:opacity-20 pointer-events-none transition-opacity duration-200" />
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               );

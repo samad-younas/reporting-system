@@ -63,6 +63,9 @@ export interface Report {
   tags?: string[];
   version?: string;
   previewImage?: string;
+
+  // UI: Mark as new
+  isNew?: boolean;
 }
 
 export interface ReportCategory {
@@ -128,6 +131,7 @@ export const reports: Report[] = [
   // --- Category: Customer Sales (ID 1) ---
   {
     id: 101,
+    isNew: true,
     name: "Daily Sales Register",
     description: "Daily sales performance summary",
     details:
@@ -267,6 +271,7 @@ export const reports: Report[] = [
   },
   {
     id: 107,
+    isNew: true,
     name: "Slow Moving Items",
     description: "Items with low turnover",
     details: "Identifies stock that has not moved in X days.",
