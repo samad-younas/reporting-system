@@ -8,6 +8,8 @@ import {
   Building2,
   Users,
   ScrollText,
+  Heart,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,15 +26,18 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+const Hr = () => <div className="h-px w-full bg-border" />;
+
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+
   const { selectedCategoryId, searchTerm } = useSelector(
     (state: any) => state.report,
   );
   const { userdata } = useSelector((state: any) => state.auth);
-  // Flat list of categories for sidebar (must be after useSelector hooks)
+
   const categoryList = React.useMemo(() => {
     return reportCategories
       .filter((cat: any) => checkPermission(cat, userdata))
@@ -44,12 +49,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   }, [userdata, searchTerm]);
 
   const handleCategoryClick = (id: number) => {
-    dispatch(setSelectedCategoryId(id)); // Set Category
-    dispatch(setSelectedSubCategory(null)); // Clear specific sub-category
+    dispatch(setSelectedCategoryId(id));
+    dispatch(setSelectedSubCategory(null));
     navigate("/all-reports");
-    if (window.innerWidth < 768 && onClose) {
-      // Don't close immediately allow tree nav
-    }
   };
 
   const handleHomeClick = () => {
@@ -60,9 +62,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     if (window.innerWidth < 768 && onClose) onClose();
   };
 
+  const handleSimpleNavigation = (path: string) => {
+    dispatch(setSelectedCategoryId(null));
+    dispatch(setSelectedSubCategory(null));
+    dispatch(setSelectedReportId(null));
+    navigate(path);
+    if (window.innerWidth < 768 && onClose) onClose();
+  };
+
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -77,7 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}
       >
-        {/* Company Header */}
+        {/* Header */}
         <div className="p-6 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 bg-primary rounded-lg flex items-center justify-center text-primary-foreground shadow-sm">
@@ -104,22 +113,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         <div className="h-px bg-border/60 mb-2 mt-4" />
 
-        {/* Dashboard Button at Top */}
+        {/* Dashboard */}
         <div className="px-4 pb-2">
           <button
-            onClick={() => {
-              navigate("/dashboard");
-              if (window.innerWidth < 768 && onClose) onClose();
-            }}
+            onClick={() => handleSimpleNavigation("/dashboard")}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group mb-1",
               location.pathname === "/dashboard"
                 ? "bg-secondary text-foreground font-semibold"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-              // Only highlight Dashboard if on /dashboard
-              location.pathname === "/dashboard" &&
-                selectedCategoryId === null &&
-                "bg-secondary text-foreground font-semibold",
             )}
           >
             <LayoutGrid
@@ -136,9 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
           <div>
-            <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-              All Reports
-            </h3>
+            {/* All Reports */}
             <button
               onClick={handleHomeClick}
               className={cn(
@@ -160,12 +160,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               />
               All Reports
             </button>
+
+            <Hr />
+
+            {/* Categories */}
             <div className="space-y-1">
               {categoryList.map((cat: any) => {
                 const isSelected =
                   location.pathname === "/all-reports" &&
                   selectedCategoryId === cat.id;
+
                 const CatIcon = cat.icon || FileText;
+
                 return (
                   <button
                     key={cat.id}
@@ -190,7 +196,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 );
               })}
             </div>
+            {/* ✅ NEW NAV ITEMS */}
+            <div className="space-y-1 mt-2">
+              <button
+                onClick={() => handleSimpleNavigation("/favourites")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                  location.pathname === "/favourites"
+                    ? "bg-secondary text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <Heart
+                  className={cn(
+                    "w-4 h-4 transition-colors",
+                    location.pathname === "/favourites"
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                />
+                Favourites
+              </button>
 
+              <button
+                onClick={() => handleSimpleNavigation("/recent-reports")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                  location.pathname === "/recent-reports"
+                    ? "bg-secondary text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <Clock
+                  className={cn(
+                    "w-4 h-4 transition-colors",
+                    location.pathname === "/recent-reports"
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                />
+                Recent Reports
+              </button>
+            </div>
+            <Hr />
             <div>
               <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider my-2 px-2">
                 System

@@ -321,7 +321,7 @@ const AllReports: React.FC = () => {
                       return (
                         <Card
                           key={report.id}
-                          className={`cursor-pointer group relative border border-slate-200 shadow-lg rounded-2xl h-44 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/60 ${report.isNew ? "ring-2 ring-primary/30 ring-offset-2 bg-gradient-to-br from-primary/5 to-white" : "bg-white"}`}
+                          className={`cursor-pointer group relative border border-slate-200 shadow-lg rounded-2xl h-44 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/60 ${report.isNew ? "ring-2 ring-primary/30 ring-offset-2 bg-linear-to-br from-primary/5 to-white" : "bg-white"}`}
                           onClick={() => handleReportSelect(report.id)}
                         >
                           {/* New badge - professional, subtle */}
