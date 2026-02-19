@@ -1,10 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   X,
-  ChevronRight,
-  ChevronDown,
   LayoutGrid,
   FileText,
   Building2,
@@ -13,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { reportCategories, reports } from "@/utils/exports";
+import { reportCategories } from "@/utils/exports";
 import { checkPermission } from "@/utils/permissions";
 import {
   setSelectedCategoryId,
@@ -30,93 +28,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { selectedCategoryId, selectedSubCategory, searchTerm } = useSelector(
+  const { selectedCategoryId, searchTerm } = useSelector(
     (state: any) => state.report,
   );
   const { userdata } = useSelector((state: any) => state.auth);
-
-  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
-
-  // Toggle category expansion
-  const toggleCategory = (categoryId: number) => {
-    setExpandedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId],
-    );
-  };
-
-  // Build the tree structure dynamically based on permissions and search
-  const categoryTree = useMemo(() => {
+  // Flat list of categories for sidebar (must be after useSelector hooks)
+  const categoryList = React.useMemo(() => {
     return reportCategories
-      .filter((cat) => checkPermission(cat, userdata))
-      .map((cat) => {
-        // Find reports in this category that user has access to
-        const catReports = reports.filter(
-          (r) =>
-            r.categoryId === cat.id &&
-            checkPermission(r, userdata) &&
-            (searchTerm === "" ||
-              r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              cat.name.toLowerCase().includes(searchTerm.toLowerCase())),
-        );
-
-        if (catReports.length === 0) return null;
-
-        // Get unique sub-categories
-        const subCategories = Array.from(
-          new Set(
-            catReports.flatMap((r) =>
-              r.subCategories && r.subCategories.length > 0
-                ? r.subCategories
-                : ["General Reports"],
-            ),
-          ),
-        ).sort();
-
-        // Auto-expand if search active
-        if (searchTerm && !expandedCategories.includes(cat.id)) {
-          // This is a side-effect in useMemo, strictly speaking bad practice
-          // but harmless for this simple logic or handle via useEffect elsewhere.
-          // Ignoring for now to keep simple.
-        }
-
-        return {
-          ...cat,
-          subCategories,
-          hasMatches: catReports.length > 0,
-        };
-      })
-      .filter((c) => c !== null && c.hasMatches);
+      .filter((cat: any) => checkPermission(cat, userdata))
+      .filter(
+        (cat: any) =>
+          searchTerm === "" ||
+          cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
   }, [userdata, searchTerm]);
 
   const handleCategoryClick = (id: number) => {
     dispatch(setSelectedCategoryId(id)); // Set Category
     dispatch(setSelectedSubCategory(null)); // Clear specific sub-category
-    toggleCategory(id);
-    navigate("/dashboard");
+    navigate("/all-reports");
     if (window.innerWidth < 768 && onClose) {
       // Don't close immediately allow tree nav
     }
-  };
-
-  const handleSubCategoryClick = (
-    e: React.MouseEvent,
-    catId: number,
-    subCat: string,
-  ) => {
-    e.stopPropagation();
-    dispatch(setSelectedCategoryId(catId));
-    dispatch(setSelectedSubCategory(subCat));
-    navigate("/dashboard");
-    if (window.innerWidth < 768 && onClose) onClose();
   };
 
   const handleHomeClick = () => {
     dispatch(setSelectedCategoryId(null));
     dispatch(setSelectedSubCategory(null));
     dispatch(setSelectedReportId(null));
-    navigate("/dashboard");
+    navigate("/all-reports");
     if (window.innerWidth < 768 && onClose) onClose();
   };
 
@@ -164,16 +104,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         <div className="h-px bg-border/60 mb-2 mt-4" />
 
+        {/* Dashboard Button at Top */}
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => {
+              navigate("/dashboard");
+              if (window.innerWidth < 768 && onClose) onClose();
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group mb-1",
+              location.pathname === "/dashboard"
+                ? "bg-secondary text-foreground font-semibold"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+              // Only highlight Dashboard if on /dashboard
+              location.pathname === "/dashboard" &&
+                selectedCategoryId === null &&
+                "bg-secondary text-foreground font-semibold",
+            )}
+          >
+            <LayoutGrid
+              className={cn(
+                "w-4 h-4 transition-colors",
+                location.pathname === "/dashboard"
+                  ? "text-primary"
+                  : "text-muted-foreground group-hover:text-foreground",
+              )}
+            />
+            Dashboard
+          </button>
+        </div>
+
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
           <div>
             <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-              Reports
+              All Reports
             </h3>
             <button
               onClick={handleHomeClick}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group mb-1",
-                selectedCategoryId === null
+                location.pathname === "/all-reports" &&
+                  selectedCategoryId === null
                   ? "bg-secondary text-foreground font-semibold"
                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
@@ -181,7 +152,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <LayoutGrid
                 className={cn(
                   "w-4 h-4 transition-colors",
-                  selectedCategoryId === null
+                  location.pathname === "/all-reports" &&
+                    selectedCategoryId === null
                     ? "text-primary"
                     : "text-muted-foreground group-hover:text-foreground",
                 )}
@@ -189,98 +161,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               All Reports
             </button>
             <div className="space-y-1">
-              {categoryTree.map((cat) => {
-                if (!cat) return null;
-                const isExpanded =
-                  expandedCategories.includes(cat.id) ||
-                  (selectedCategoryId === cat.id && !selectedSubCategory);
-                const isSelectedCtx =
-                  selectedCategoryId === cat.id && !selectedSubCategory;
-
+              {categoryList.map((cat: any) => {
+                const isSelected =
+                  location.pathname === "/all-reports" &&
+                  selectedCategoryId === cat.id;
                 return (
-                  <div key={cat.id} className="space-y-1">
-                    <button
-                      onClick={() => handleCategoryClick(cat.id)}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
-                        isSelectedCtx
-                          ? "bg-secondary text-foreground font-semibold"
-                          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                      )}
-                    >
-                      <span className="flex items-center gap-3">
-                        {cat.icon ? (
-                          <cat.icon
-                            className={cn(
-                              "w-4 h-4 transition-colors",
-                              isSelectedCtx
-                                ? "text-primary"
-                                : "text-muted-foreground group-hover:text-foreground",
-                            )}
-                          />
-                        ) : (
-                          <FileText
-                            className={cn(
-                              "w-4 h-4 transition-colors",
-                              isSelectedCtx
-                                ? "text-primary"
-                                : "text-muted-foreground group-hover:text-foreground",
-                            )}
-                          />
-                        )}
-                        {cat.name}
-                      </span>
-                      {cat.subCategories.length > 0 && (
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleCategory(cat.id);
-                          }}
-                          className={cn(
-                            "p-0.5 rounded transition-colors",
-                            isSelectedCtx
-                              ? "bg-background shadow-sm"
-                              : "group-hover:bg-background",
-                          )}
-                        >
-                          {isExpanded ? (
-                            <ChevronDown className="w-3 h-3 text-current opactiy-70" />
-                          ) : (
-                            <ChevronRight className="w-3 h-3 text-current opacity-70" />
-                          )}
-                        </div>
-                      )}
-                    </button>
-
-                    {isExpanded && (
-                      <div className="ml-4 pl-3 border-l-2 border-border/50 space-y-1 mt-1 mb-2 animate-in slide-in-from-left-1 duration-200">
-                        {cat.subCategories.map((sub) => {
-                          const isSelectedSub =
-                            selectedSubCategory === sub &&
-                            selectedCategoryId === cat.id;
-                          return (
-                            <button
-                              key={sub}
-                              onClick={(e) =>
-                                handleSubCategoryClick(e, cat.id, sub)
-                              }
-                              className={cn(
-                                "w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors text-left relative",
-                                isSelectedSub
-                                  ? "text-primary font-semibold bg-primary/5"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                              )}
-                            >
-                              {isSelectedSub && (
-                                <div className="absolute left-0 w-0.5 h-3 bg-primary rounded-r-full" />
-                              )}
-                              {sub}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  <button
+                    key={cat.id}
+                    onClick={() => handleCategoryClick(cat.id)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                      isSelected
+                        ? "bg-secondary text-foreground font-semibold"
+                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     )}
-                  </div>
+                  >
+                    <FileText
+                      className={cn(
+                        "w-4 h-4 transition-colors",
+                        isSelected
+                          ? "text-primary"
+                          : "text-muted-foreground group-hover:text-foreground",
+                      )}
+                    />
+                    {cat.name}
+                  </button>
                 );
               })}
             </div>

@@ -7,6 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AllReports = lazy(() => import("./pages/AllReports.tsx"));
 const UserManagement = lazy(() => import("./pages/ManageUser"));
 const ReportManagement = lazy(() => import("./pages/ManageReports"));
 const Login = lazy(() => import("./pages/Login"));
@@ -35,6 +36,7 @@ const App: React.FC = () => {
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="all-reports" element={<AllReports />} />
           <Route path="ssrs-reports" element={<SSRSReports />} />
           <Route path="user-management" element={<UserManagement />} />
           <Route path="report-management" element={<ReportManagement />} />
