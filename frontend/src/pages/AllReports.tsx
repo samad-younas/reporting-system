@@ -35,6 +35,11 @@ import {
   Tag,
   SortAsc,
   X,
+  Loader2,
+  Monitor,
+  Server,
+  Globe,
+  RefreshCw,
 } from "lucide-react";
 import { Crystal } from "crystis-react";
 import { cn } from "@/lib/utils";
@@ -271,6 +276,8 @@ const AllReports: React.FC = () => {
 
   const [params, setParams] = useState<Record<string, any>>({});
   const [localSearch, setLocalSearch] = useState("");
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
 
   const activeReport = useMemo(() => {
     const report = reports.find((r) => r.id === selectedReportId);
@@ -279,10 +286,14 @@ const AllReports: React.FC = () => {
 
   useEffect(() => {
     setParams({});
+    setReportUrl(null);
+    setIsRunning(false);
   }, [selectedReportId]);
 
   const handleRunReport = async () => {
     if (!activeReport) return;
+    setIsRunning(true);
+    setReportUrl(null);
     let data = [...activeReport.result];
     Object.entries(params).forEach(([key, value]) => {
       if (!value) return;
@@ -315,9 +326,8 @@ const AllReports: React.FC = () => {
       );
       const encrypted = await crystal.encrypt(query);
       if (encrypted.tekst1 === "Ok") {
-        window.open(
+        setReportUrl(
           `https://www.pro.siteknower.com/CrystalReportB.aspx?enc=${encrypted.tekst3}`,
-          "_blank",
         );
       } else {
         throw new Error(encrypted.tekst2);
@@ -325,6 +335,8 @@ const AllReports: React.FC = () => {
     } catch (error) {
       console.error("Failed to load report", error);
       alert("Failed to load report.");
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -479,64 +491,125 @@ const AllReports: React.FC = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="prose max-w-none">
-              <h3 className="text-lg font-semibold mb-2">
-                Who is this report for?
-              </h3>
-              <p className="text-muted-foreground">
-                {(activeReport.allowedRoles || ["Analysts", "Managers"]).join(
-                  ", ",
-                )}
-              </p>
-            </div>
-            <Hr />
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Overview</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {activeReport.details || activeReport.description}
-              </p>
-            </div>
-            <Hr />
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-card-foreground">
-                  Included in the report
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Data
-                  Source
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Dashboard
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Exportable
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Drilldown
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* ── Architecture proof-of-concept banner ── */}
+        <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-xs text-muted-foreground">
+          <Monitor className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="font-medium text-primary">Browser</span>
+          <ArrowRight className="h-3 w-3 shrink-0" />
+          <Globe className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="font-medium text-primary">App Server</span>
+          <ArrowRight className="h-3 w-3 shrink-0" />
+          <Server className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="font-medium text-primary">
+            Crystal Reports Server
+          </span>
+          <ArrowRight className="h-3 w-3 shrink-0" />
+          <Monitor className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="font-medium text-primary">Rendered in Browser</span>
+          <span className="ml-auto text-[10px] bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 rounded-full font-semibold">
+            No client install required
+          </span>
+        </div>
 
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-8",
+            reportUrl ? "lg:grid-cols-3" : "lg:grid-cols-3",
+          )}
+        >
+          {reportUrl ? (
+            /* ── Embedded report viewer ── */
+            <div className="lg:col-span-2 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-foreground">
+                  Report Output
+                </h3>
+                <span className="inline-flex items-center gap-1.5 text-[11px] bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full font-semibold">
+                  <CheckCircle2 className="h-3 w-3" /> Rendered server-side ·
+                  displayed in browser
+                </span>
+              </div>
+              <div
+                className="relative rounded-xl overflow-hidden border border-border/60 shadow-sm bg-muted/20"
+                style={{ height: "640px" }}
+              >
+                <iframe
+                  src={reportUrl}
+                  title={activeReport.name}
+                  className="w-full h-full"
+                  style={{ border: "none" }}
+                  allow="fullscreen"
+                />
+              </div>
+            </div>
+          ) : (
+            /* ── Overview (shown before generating) ── */
+            <div className="lg:col-span-2 space-y-8">
+              <div className="prose max-w-none">
+                <h3 className="text-lg font-semibold mb-2">
+                  Who is this report for?
+                </h3>
+                <p className="text-muted-foreground">
+                  {(activeReport.allowedRoles || ["Analysts", "Managers"]).join(
+                    ", ",
+                  )}
+                </p>
+              </div>
+              <Hr />
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Overview</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {activeReport.details || activeReport.description}
+                </p>
+              </div>
+              <Hr />
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-card-foreground">
+                    Included in the report
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" /> Data
+                    Source
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />{" "}
+                    Dashboard
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />{" "}
+                    Exportable
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />{" "}
+                    Drilldown
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ── Params / Run card (always on the right) ── */}
           <div className="lg:col-span-1 space-y-6">
             <Card className="overflow-hidden border-border/50 hover:shadow-lg transition-all duration-300">
               <CardHeader className="relative pb-4 border-b border-border/50">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-xl font-bold tracking-tight text-foreground">
-                      Run Report
+                      {reportUrl ? "Re-run Report" : "Run Report"}
                     </CardTitle>
                     <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wider">
                       Configure Parameters
                     </p>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
-                    <Layers className="h-5 w-5" />
+                    {reportUrl ? (
+                      <RefreshCw className="h-5 w-5" />
+                    ) : (
+                      <Layers className="h-5 w-5" />
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -552,12 +625,20 @@ const AllReports: React.FC = () => {
                 </div>
                 <Button
                   onClick={handleRunReport}
-                  className="w-full h-12 text-base rounded-xl font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 bg-primary hover:bg-primary/90 transition-all active:scale-[0.98]"
+                  disabled={isRunning}
+                  className="w-full h-12 text-base rounded-xl font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 bg-primary hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-70"
                 >
-                  <span className="flex items-center gap-2">
-                    Generate Report{" "}
-                    <ArrowRight className="h-4 w-4 stroke-[3px]" />
-                  </span>
+                  {isRunning ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      {reportUrl ? "Re-generate Report" : "Generate Report"}{" "}
+                      <ArrowRight className="h-4 w-4 stroke-[3px]" />
+                    </span>
+                  )}
                 </Button>
               </CardContent>
             </Card>
