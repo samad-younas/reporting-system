@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import {
   reportCategories,
+  reportSubcategories,
   type Report,
   type ReportParameter,
 } from "@/utils/exports";
@@ -40,14 +40,13 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
     description: "",
     details: "",
     categoryId: 1,
-    subCategories: [],
+    subcategoryId: 1,
     type: "table",
-    allowedRoles: ["admin", "manager"], // Default
+    allowedRoles: ["admin", "manager"],
     parameters: [],
-    result: [], // Placeholder
+    result: [],
   });
 
-  const [subCatInput, setSubCatInput] = useState("");
   const [parameters, setParameters] = useState<ReportParameter[]>([]);
 
   useEffect(() => {
@@ -55,7 +54,6 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
       setFormData({
         ...initialData,
         allowedRoles: initialData.allowedRoles || [],
-        subCategories: initialData.subCategories || [],
       });
       setParameters(initialData.parameters || []);
     }
@@ -63,23 +61,6 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
 
   const handleChange = (field: keyof Report, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const addSubCategory = () => {
-    if (!subCatInput.trim()) return;
-    const current = formData.subCategories || [];
-    if (!current.includes(subCatInput.trim())) {
-      handleChange("subCategories", [...current, subCatInput.trim()]);
-    }
-    setSubCatInput("");
-  };
-
-  const removeSubCategory = (subCat: string) => {
-    const current = formData.subCategories || [];
-    handleChange(
-      "subCategories",
-      current.filter((s) => s !== subCat),
-    );
   };
 
   // Parameter Management
@@ -160,7 +141,15 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
           <Label htmlFor="category">Category</Label>
           <Select
             value={formData.categoryId?.toString()}
-            onValueChange={(val) => handleChange("categoryId", parseInt(val))}
+            onValueChange={(val) => {
+              const catId = parseInt(val);
+              handleChange("categoryId", catId);
+              // auto-select first subcategory of new category
+              const firstSub = reportSubcategories.find(
+                (s) => s.categoryId === catId,
+              );
+              if (firstSub) handleChange("subcategoryId", firstSub.id);
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Category" />
@@ -176,35 +165,26 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label>Sub Categories</Label>
-          <div className="flex gap-2">
-            <Input
-              value={subCatInput}
-              onChange={(e) => setSubCatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addSubCategory();
-                }
-              }}
-              placeholder="Type and press Enter..."
-              className="flex-1"
-            />
-            <Button type="button" variant="outline" onClick={addSubCategory}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.subCategories?.map((cat) => (
-              <Badge key={cat} variant="secondary" className="gap-1 pr-1">
-                {cat}
-                <X
-                  className="h-3 w-3 cursor-pointer hover:text-destructive"
-                  onClick={() => removeSubCategory(cat)}
-                />
-              </Badge>
-            ))}
-          </div>
+          <Label htmlFor="subcategory">Subcategory</Label>
+          <Select
+            value={formData.subcategoryId?.toString()}
+            onValueChange={(val) =>
+              handleChange("subcategoryId", parseInt(val))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Subcategory" />
+            </SelectTrigger>
+            <SelectContent>
+              {reportSubcategories
+                .filter((s) => s.categoryId === (formData.categoryId ?? 1))
+                .map((sub) => (
+                  <SelectItem key={sub.id} value={sub.id.toString()}>
+                    {sub.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

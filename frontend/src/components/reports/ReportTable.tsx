@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import type { Report } from "@/utils/exports";
+import { reportSubcategories, reportCategories } from "@/utils/exports";
 import { Badge } from "@/components/ui/badge";
 
 interface ReportTableProps {
@@ -55,19 +56,16 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell>{report.categoryId}</TableCell>
                 <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {report.subCategories?.map((sub, i) => (
-                      <Badge
-                        key={i}
-                        variant="secondary"
-                        className="text-[10px] px-1 h-5"
-                      >
-                        {sub}
-                      </Badge>
-                    ))}
-                  </div>
+                  {reportCategories.find((c) => c.id === report.categoryId)
+                    ?.name ?? report.categoryId}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className="text-[10px] px-1 h-5">
+                    {reportSubcategories.find(
+                      (s) => s.id === report.subcategoryId,
+                    )?.name ?? "-"}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{report.type}</Badge>

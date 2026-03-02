@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const AllReports = lazy(() => import("./pages/AllReports.tsx"));
+const AllReports = lazy(() => import("./pages/AllReports"));
 const UserManagement = lazy(() => import("./pages/ManageUser"));
 const ReportManagement = lazy(() => import("./pages/ManageReports"));
 const Login = lazy(() => import("./pages/Login"));
