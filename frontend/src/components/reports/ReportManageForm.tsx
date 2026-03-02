@@ -37,6 +37,7 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<Partial<Report>>({
     name: "",
+    prefix: "",
     description: "",
     details: "",
     categoryId: 1,
@@ -134,6 +135,16 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
             onChange={(e) => handleChange("name", e.target.value)}
             required
             placeholder="e.g. Daily Sales"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="prefix">Report Prefix</Label>
+          <Input
+            id="prefix"
+            value={formData.prefix || ""}
+            onChange={(e) => handleChange("prefix", e.target.value)}
+            placeholder="e.g. #01, #02a"
           />
         </div>
 

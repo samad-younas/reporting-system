@@ -1,7 +1,6 @@
 import React from "react";
-import { Menu, Search, LogOut, User, ChevronDown } from "lucide-react";
+import { Menu, LogOut, User, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,7 +11,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logOut } from "@/store/slices/authSlice";
-import { setSearchTerm } from "@/store/slices/reportSlice";
 import { useSubmit } from "@/hooks/useSubmit";
 import { toast } from "react-toastify";
 
@@ -21,7 +19,6 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const { searchTerm } = useSelector((state: any) => state.report);
   const { userdata } = useSelector((state: any) => state.auth);
 
   const { mutateAsync } = useSubmit({
@@ -47,27 +44,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   return (
     <header className="w-full border-b bg-white px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-40">
       {/* Left Section */}
-      <div className="flex items-center gap-4 flex-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onMenuClick}
-          className="md:hidden"
-        >
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={onMenuClick}>
           <Menu className="w-5 h-5" />
         </Button>
-
-        {/* Search Bar */}
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            type="search"
-            placeholder="Search reports..."
-            value={searchTerm}
-            onChange={(e) => dispatch(setSearchTerm(e.target.value))}
-            className="pl-10 h-10 bg-gray-50 border border-gray-200 focus:bg-white focus:border-gray-300 rounded-lg transition-all"
-          />
-        </div>
       </div>
 
       {/* Right Section */}

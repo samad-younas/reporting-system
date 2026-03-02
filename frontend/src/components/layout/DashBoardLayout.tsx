@@ -5,7 +5,7 @@ import { Header } from "./Header";
 import { Footer } from "./Footer";
 
 export const DashboardLayout: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);

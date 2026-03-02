@@ -106,7 +106,7 @@ const ReportCard: React.FC<{
     <Card
       onClick={() => onSelect(report.id)}
       className={cn(
-        "cursor-pointer group relative border border-slate-200 shadow-sm rounded-2xl h-44 flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/60",
+        "cursor-pointer group relative border border-slate-200 shadow-sm rounded-2xl h-44 flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/60",
         report.isNew
           ? "ring-2 ring-primary/30 ring-offset-1 bg-linear-to-br from-primary/5 to-white"
           : "bg-white",

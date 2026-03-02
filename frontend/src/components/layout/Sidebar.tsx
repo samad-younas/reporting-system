@@ -12,6 +12,7 @@ import {
   Clock,
   ChevronRight,
   Library,
+  Folder,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -112,9 +113,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       <aside
         className={cn(
-          "bg-white border-r h-full flex flex-col transition-all duration-300",
-          "fixed md:static inset-y-0 left-0 z-50 w-72 shadow-xl md:shadow-none font-sans",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          "bg-white border-r h-full flex flex-col overflow-hidden",
+          "transition-[width,transform] duration-300 ease-in-out",
+          "fixed md:relative inset-y-0 left-0 z-50 shadow-xl md:shadow-none font-sans",
+          isOpen
+            ? "w-72 translate-x-0"
+            : "w-72 -translate-x-full md:w-0 md:translate-x-0",
         )}
       >
         {/* Header */}
@@ -203,7 +207,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   {allowedCategories
                     .filter((cat) => cat.groupId === group.id)
                     .map((cat) => {
-                      const CatIcon = cat.icon || FileText;
                       const isCatActive =
                         isOnReports &&
                         selectedCategoryId === cat.id &&
@@ -226,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                               )}
                             >
-                              <CatIcon
+                              <Folder
                                 className={cn(
                                   "w-3.5 h-3.5 shrink-0",
                                   isCatActive
@@ -256,7 +259,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           {isExpanded && subcats.length > 0 && (
                             <div className="ml-5 space-y-0.5 mt-0.5">
                               {subcats.map((sub) => {
-                                const SubIcon = sub.icon || FileText;
                                 const isSubActive =
                                   isOnReports &&
                                   selectedCategoryId === cat.id &&
@@ -275,7 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                         : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                                     )}
                                   >
-                                    <SubIcon className="w-3 h-3 shrink-0" />
+                                    <Folder className="w-3 h-3 shrink-0" />
                                     <span className="truncate">{sub.name}</span>
                                   </button>
                                 );
