@@ -63,6 +63,11 @@ const Login: React.FC = () => {
     e.preventDefault();
     try {
       if (requiresMfa) {
+        if (mfaCode.length !== 6) {
+          toast.error("Enter a valid 6-digit MFA code.");
+          return;
+        }
+
         setIsVerifyingMfa(true);
         const response = await fetch(`${apiURL}api/auth/mfa/verify`, {
           method: "POST",
@@ -71,9 +76,15 @@ const Login: React.FC = () => {
             Accept: "application/json",
             Authorization: `Bearer ${mfaChallengeToken}`,
           },
-          body: JSON.stringify({ code: mfaCode }),
+          body: JSON.stringify({ code: Number(mfaCode) }),
         });
-        const data = await response.json();
+        const text = await response.text();
+        let data: any = null;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch {
+          data = { message: text || "MFA verification failed." };
+        }
         setIsVerifyingMfa(false);
 
         if (!data?.token) {
@@ -93,6 +104,7 @@ const Login: React.FC = () => {
       if (data?.mfa_required && data?.mfa_challenge_token) {
         setMfaChallengeToken(data.mfa_challenge_token);
         setRequiresMfa(true);
+        setMfaCode("");
         toast.info("MFA required. Enter your 6-digit code to continue.");
         return;
       }

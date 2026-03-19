@@ -33,6 +33,7 @@ const Profile: React.FC = () => {
   const dispatch = useDispatch();
   const { userdata } = useSelector((state: any) => state.auth);
   const [mfaCode, setMfaCode] = React.useState("");
+  const [mfaDisablePassword, setMfaDisablePassword] = React.useState("");
   const [mfaSetupData, setMfaSetupData] = React.useState<any>(null);
   const profile = userdata?.profile || {};
   const visibility = userdata?.visibility_flags || {};
@@ -91,12 +92,12 @@ const Profile: React.FC = () => {
   };
 
   const handleConfirmMfa = async () => {
-    if (!mfaCode) {
+    if (mfaCode.length !== 6) {
       toast.error("Enter MFA code to confirm setup.");
       return;
     }
     try {
-      const data = await confirmMfa({ code: mfaCode });
+      const data = await confirmMfa({ code: Number(mfaCode) });
       toast.success(data?.message || "MFA enabled successfully.");
       setMfaCode("");
       setMfaSetupData(null);
@@ -107,14 +108,15 @@ const Profile: React.FC = () => {
   };
 
   const handleDisableMfa = async () => {
-    if (!mfaCode) {
-      toast.error("Enter MFA code to disable MFA.");
+    if (!mfaDisablePassword.trim()) {
+      toast.error("Enter your current password to disable MFA.");
       return;
     }
     try {
-      const data = await disableMfa({ code: mfaCode });
+      const data = await disableMfa({ password: mfaDisablePassword });
       toast.success(data?.message || "MFA disabled successfully.");
       setMfaCode("");
+      setMfaDisablePassword("");
       await refreshProfile();
     } catch {
       // useSubmit already shows API errors.
@@ -296,28 +298,39 @@ const Profile: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              value={mfaCode}
-              onChange={(e) =>
-                setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              placeholder="Enter 6-digit MFA code"
-              maxLength={6}
-              inputMode="numeric"
-              className="max-w-xs"
-            />
             {!isMfaEnabled ? (
-              <Button onClick={handleSetupMfa} disabled={isSettingUpMfa}>
-                {isSettingUpMfa ? "Preparing MFA..." : "Setup MFA"}
-              </Button>
+              <>
+                <Input
+                  value={mfaCode}
+                  onChange={(e) =>
+                    setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  placeholder="Enter 6-digit MFA code"
+                  maxLength={6}
+                  inputMode="numeric"
+                  className="max-w-xs"
+                />
+                <Button onClick={handleSetupMfa} disabled={isSettingUpMfa}>
+                  {isSettingUpMfa ? "Preparing MFA..." : "Setup MFA"}
+                </Button>
+              </>
             ) : (
-              <Button
-                variant="destructive"
-                onClick={handleDisableMfa}
-                disabled={isDisablingMfa}
-              >
-                {isDisablingMfa ? "Disabling..." : "Disable MFA"}
-              </Button>
+              <>
+                <Input
+                  value={mfaDisablePassword}
+                  onChange={(e) => setMfaDisablePassword(e.target.value)}
+                  placeholder="Enter current password"
+                  type="password"
+                  className="max-w-xs"
+                />
+                <Button
+                  variant="destructive"
+                  onClick={handleDisableMfa}
+                  disabled={isDisablingMfa}
+                >
+                  {isDisablingMfa ? "Disabling..." : "Disable MFA"}
+                </Button>
+              </>
             )}
           </div>
 

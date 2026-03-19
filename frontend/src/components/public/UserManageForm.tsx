@@ -111,8 +111,11 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           ...initialData.profile,
         },
         access_mappings: {
-          ...baseData.access_mappings,
-          ...initialData.access_mappings,
+          region_ids: initialData.access_mappings?.region_ids || [],
+          product_group_ids:
+            initialData.access_mappings?.product_group_ids || [],
+          customer_group_ids:
+            initialData.access_mappings?.customer_group_ids || [],
         },
       });
       return;
@@ -198,16 +201,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         [key]: ids,
       },
     }));
-  };
-
-  const getSelectedCount = (
-    key: "region_ids" | "product_group_ids" | "customer_group_ids",
-  ) => {
-    if (key === "region_ids")
-      return formData.access_mappings?.region_ids?.length || 0;
-    if (key === "product_group_ids")
-      return formData.access_mappings?.product_group_ids?.length || 0;
-    return formData.access_mappings?.customer_group_ids?.length || 0;
   };
 
   if (isPending || isSecurityLoading) {
@@ -429,19 +422,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Regions</label>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {getSelectedCount("region_ids")} selected
-                </Badge>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAccessMappingChange("region_ids", [])}
-                >
-                  Clear
-                </Button>
-              </div>
             </div>
             <select
               multiple
@@ -467,21 +447,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Product Groups</label>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {getSelectedCount("product_group_ids")} selected
-                </Badge>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleAccessMappingChange("product_group_ids", [])
-                  }
-                >
-                  Clear
-                </Button>
-              </div>
             </div>
             <select
               multiple
@@ -509,21 +474,6 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Customer Groups</label>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {getSelectedCount("customer_group_ids")} selected
-                </Badge>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handleAccessMappingChange("customer_group_ids", [])
-                  }
-                >
-                  Clear
-                </Button>
-              </div>
             </div>
             <select
               multiple

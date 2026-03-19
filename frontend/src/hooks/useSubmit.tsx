@@ -50,13 +50,15 @@ export const useSubmit = ({
     mutationFn: async (data: any) => {
       const finalEndpoint =
         typeof endpoint === "function" ? endpoint(data) : endpoint;
+      const hasBody = data !== undefined;
       const response = await fetch(`${apiURL}${finalEndpoint}`, {
         method: method,
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
           ...(isAuth && token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(data),
+        ...(hasBody ? { body: JSON.stringify(data) } : {}),
       });
 
       const rawBody = await response.text();
