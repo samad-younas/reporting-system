@@ -20,6 +20,59 @@ import { toast } from "react-toastify";
 
 type SecurityOption = { id: number; name: string };
 
+type SecurityMappingRow = {
+  region_id: number | null;
+  product_group_id: number | null;
+  customer_group_id: number | null;
+  is_allow: boolean;
+};
+
+const toUniqueRoleIds = (formData: UserFormData): number[] => {
+  const allIds = [
+    ...(Array.isArray(formData.role_ids) ? formData.role_ids : []),
+    ...(typeof formData.role_id === "number" ? [formData.role_id] : []),
+  ];
+
+  const uniqueIds = Array.from(
+    new Set(allIds.map((id) => Number(id)).filter((id) => Number.isFinite(id))),
+  );
+
+  return uniqueIds.length > 0 ? [uniqueIds[0]] : [];
+};
+
+const toSecurityMappings = (formData: UserFormData): SecurityMappingRow[] => {
+  const regionIds = Array.from(
+    new Set(formData.access_mappings?.region_ids || []),
+  );
+  const productGroupIds = Array.from(
+    new Set(formData.access_mappings?.product_group_ids || []),
+  );
+  const customerGroupIds = Array.from(
+    new Set(formData.access_mappings?.customer_group_ids || []),
+  );
+
+  return [
+    ...regionIds.map((id) => ({
+      region_id: id,
+      product_group_id: null,
+      customer_group_id: null,
+      is_allow: true,
+    })),
+    ...productGroupIds.map((id) => ({
+      region_id: null,
+      product_group_id: id,
+      customer_group_id: null,
+      is_allow: true,
+    })),
+    ...customerGroupIds.map((id) => ({
+      region_id: null,
+      product_group_id: null,
+      customer_group_id: id,
+      is_allow: true,
+    })),
+  ];
+};
+
 const normalizeOptionList = (raw: any): SecurityOption[] => {
   const list = Array.isArray(raw)
     ? raw
@@ -116,6 +169,8 @@ const mapApiUserToUi = (raw: any): User => {
   return {
     id: raw?.id,
     email: raw?.email || "",
+    auth_type: raw?.auth_type || "internal",
+    sales_rep_id: raw?.sales_rep_id || "",
     user_type:
       roleLabel ||
       raw?.user_type ||
@@ -151,29 +206,35 @@ const mapApiUserToUi = (raw: any): User => {
 
 const buildUserPayload = (formData: UserFormData, isUpdate = false) => {
   const usernameFromEmail = formData.email.split("@")[0] || "user";
-  const selectedRoleId =
-    formData.role_id ||
-    (Array.isArray(formData.role_ids) ? formData.role_ids[0] : undefined);
-
-  return {
-    username: usernameFromEmail,
+  const roleIds = toUniqueRoleIds(formData);
+  const basePayload = {
     email: formData.email,
     display_name: formData.profile.full_name,
-    ...(formData.password ? { password: formData.password } : {}),
-    ...(formData.password && !isUpdate
-      ? { password_confirmation: formData.password }
-      : {}),
-    auth_type: "internal",
-    role_ids: selectedRoleId ? [selectedRoleId] : [],
+    auth_type: formData.auth_type || "internal",
+    role_ids: roleIds,
     is_active: !formData.profile.is_inactive,
     visibility_flags: {
       see_cost: formData.profile.is_cost_visible,
       see_gp: false,
       see_margin: false,
     },
-    region_ids: formData.access_mappings?.region_ids || [],
-    product_group_ids: formData.access_mappings?.product_group_ids || [],
-    customer_group_ids: formData.access_mappings?.customer_group_ids || [],
+    ...(formData.sales_rep_id?.trim()
+      ? { sales_rep_id: formData.sales_rep_id.trim() }
+      : {}),
+  };
+
+  if (isUpdate) {
+    return {
+      ...basePayload,
+      ...(formData.password ? { password: formData.password } : {}),
+    };
+  }
+
+  return {
+    username: usernameFromEmail,
+    ...basePayload,
+    ...(formData.password ? { password: formData.password } : {}),
+    ...(formData.password ? { password_confirmation: formData.password } : {}),
   };
 };
 
@@ -217,12 +278,6 @@ const ManageUser: React.FC = () => {
   const { mutateAsync: saveSecurityMappings } = useSubmit({
     method: "POST",
     endpoint: "api/security/mappings/bulk",
-    isAuth: true,
-  });
-
-  const { mutateAsync: assignUserRole } = useSubmit({
-    method: "POST",
-    endpoint: "api/roles/assign-user",
     isAuth: true,
   });
 
@@ -279,27 +334,10 @@ const ManageUser: React.FC = () => {
     userId: string | number,
     formData: UserFormData,
   ) => {
+    const mappings = toSecurityMappings(formData);
     await saveSecurityMappings({
       user_id: userId,
-      region_ids: formData.access_mappings?.region_ids || [],
-      product_group_ids: formData.access_mappings?.product_group_ids || [],
-      customer_group_ids: formData.access_mappings?.customer_group_ids || [],
-    });
-  };
-
-  const syncRoleAssignment = async (
-    userId: string | number,
-    formData: UserFormData,
-  ) => {
-    const selectedRoleId =
-      formData.role_id ||
-      (Array.isArray(formData.role_ids) ? formData.role_ids[0] : undefined);
-
-    if (!selectedRoleId) return;
-
-    await assignUserRole({
-      user_id: userId,
-      role_ids: [selectedRoleId],
+      mappings,
     });
   };
 
@@ -380,6 +418,8 @@ const ManageUser: React.FC = () => {
   };
 
   const handleSubmitUser = async (formData: UserFormData) => {
+    const securityMappings = toSecurityMappings(formData);
+
     try {
       if (editingUser) {
         const dataToSubmit = {
@@ -388,7 +428,6 @@ const ManageUser: React.FC = () => {
         };
         const data = await updateMutate(dataToSubmit);
         const updatedRaw = data?.data || data;
-        await syncRoleAssignment(editingUser.id, formData);
         await syncSecurityMappings(editingUser.id, formData);
         setUsers(
           users.map((u) =>
@@ -402,8 +441,7 @@ const ManageUser: React.FC = () => {
         if (data) {
           const newUserRaw = data.data || data;
           const userId = newUserRaw?.id;
-          if (userId) {
-            await syncRoleAssignment(userId, formData);
+          if (userId && securityMappings.length > 0) {
             await syncSecurityMappings(userId, formData);
           }
 
@@ -453,9 +491,16 @@ const ManageUser: React.FC = () => {
 
     return {
       email: editingUser.email,
+      auth_type: editingUser.auth_type || "internal",
+      sales_rep_id: editingUser.sales_rep_id || "",
       user_type: editingUser.user_type,
       role_id: primaryRoleId,
-      role_ids: primaryRoleId ? [primaryRoleId] : [],
+      role_ids:
+        Array.isArray(editingUser.role_ids) && editingUser.role_ids.length > 0
+          ? editingUser.role_ids
+          : primaryRoleId
+            ? [primaryRoleId]
+            : [],
       profile: editingUser.profile
         ? { ...defaultProfile, ...editingUser.profile }
         : defaultProfile,

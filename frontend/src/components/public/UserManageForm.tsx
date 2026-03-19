@@ -46,6 +46,8 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     email: "",
     password: "",
     user_type: "",
+    auth_type: "internal",
+    sales_rep_id: "",
     profile: {
       full_name: "",
       region: "",
@@ -66,15 +68,12 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   });
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-      return;
-    }
-
-    setFormData({
+    const baseData: UserFormData = {
       email: "",
       password: "",
       user_type: "",
+      auth_type: "internal",
+      sales_rep_id: "",
       role_id: undefined,
       profile: {
         full_name: "",
@@ -93,7 +92,33 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         customer_group_ids: [],
       },
       role_ids: [],
-    });
+    };
+
+    if (initialData) {
+      setFormData({
+        ...baseData,
+        ...initialData,
+        auth_type: initialData.auth_type || "internal",
+        sales_rep_id: initialData.sales_rep_id || "",
+        role_ids:
+          Array.isArray(initialData.role_ids) && initialData.role_ids.length > 0
+            ? initialData.role_ids
+            : typeof initialData.role_id === "number"
+              ? [initialData.role_id]
+              : [],
+        profile: {
+          ...baseData.profile,
+          ...initialData.profile,
+        },
+        access_mappings: {
+          ...baseData.access_mappings,
+          ...initialData.access_mappings,
+        },
+      });
+      return;
+    }
+
+    setFormData(baseData);
   }, [initialData]);
 
   const handleChange = (
@@ -173,6 +198,16 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         [key]: ids,
       },
     }));
+  };
+
+  const getSelectedCount = (
+    key: "region_ids" | "product_group_ids" | "customer_group_ids",
+  ) => {
+    if (key === "region_ids")
+      return formData.access_mappings?.region_ids?.length || 0;
+    if (key === "product_group_ids")
+      return formData.access_mappings?.product_group_ids?.length || 0;
+    return formData.access_mappings?.customer_group_ids?.length || 0;
   };
 
   if (isPending || isSecurityLoading) {
@@ -257,8 +292,37 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              Each user can have one primary role.
+              Only one role can be selected for a user.
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Auth Type</label>
+            <select
+              name="auth_type"
+              value={formData.auth_type || "internal"}
+              onChange={handleChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              required
+            >
+              <option value="internal">internal</option>
+              <option value="mfa">mfa</option>
+              <option value="entra_id">entra_id</option>
+              <option value="saml">saml</option>
+              <option value="oidc">oidc</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Sales Rep ID</label>
+            <input
+              type="text"
+              name="sales_rep_id"
+              value={formData.sales_rep_id || ""}
+              onChange={handleChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="SR001"
+            />
           </div>
         </div>
       </div>
@@ -363,7 +427,22 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         </p>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Regions</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Regions</label>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {getSelectedCount("region_ids")} selected
+                </Badge>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleAccessMappingChange("region_ids", [])}
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
             <select
               multiple
               className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -386,7 +465,24 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Product Groups</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Product Groups</label>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {getSelectedCount("product_group_ids")} selected
+                </Badge>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleAccessMappingChange("product_group_ids", [])
+                  }
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
             <select
               multiple
               className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -411,7 +507,24 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Customer Groups</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Customer Groups</label>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  {getSelectedCount("customer_group_ids")} selected
+                </Badge>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    handleAccessMappingChange("customer_group_ids", [])
+                  }
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
             <select
               multiple
               className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

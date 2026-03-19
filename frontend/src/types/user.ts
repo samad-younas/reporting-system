@@ -8,6 +8,8 @@ export interface UserFormData {
   email: string;
   password?: string;
   user_type: string;
+  auth_type?: "internal" | "mfa" | "entra_id" | "saml" | "oidc";
+  sales_rep_id?: string;
   role_id?: number;
   role_ids?: number[];
   profile: {
@@ -29,6 +31,8 @@ export interface User {
   email: string;
   password?: string;
   user_type: string;
+  auth_type?: "internal" | "mfa" | "entra_id" | "saml" | "oidc";
+  sales_rep_id?: string;
   role_id: number | string;
   role_ids?: number[];
   profile: {
