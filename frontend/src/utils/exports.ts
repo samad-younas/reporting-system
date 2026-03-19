@@ -60,6 +60,7 @@ export interface ReportCategory {
   groupId: number;
   icon?: React.ElementType;
   description?: string;
+  requiredPermissions?: string[];
   allowedRoles?: string[];
   allowedLocations?: string[];
   allowedCountries?: string[];
@@ -87,9 +88,10 @@ export interface Report {
   details?: string;
   subcategoryId: number; // links to ReportSubcategory
   categoryId: number; // links to ReportCategory (derived / kept for convenience)
-  type: "table" | "pdf";
+  type: "table" | "pdf" | "chart";
   parameters: ReportParameter[];
   result: Record<string, any>[];
+  requiredPermissions?: string[];
   allowedRoles?: string[];
   allowedLocations?: string[];
   allowedCountries?: string[];
@@ -100,6 +102,12 @@ export interface Report {
   benefits?: string[];
   tags?: string[];
   version?: string;
+  mainCategory?: string;
+  reportType?: string;
+  outputMode?: "embed" | "new_tab";
+  engine?: "crystal" | "powerbi" | "devexpress" | "other";
+  engineConfig?: Record<string, any>;
+  reportImage?: string;
   previewImage?: string;
   isNew?: boolean;
 }

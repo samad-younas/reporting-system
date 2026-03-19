@@ -3,6 +3,7 @@ export interface ReportCategory {
   name: string;
   image?: string;
   description?: string;
+  requiredPermissions?: string[];
 }
 
 export interface ReportParameterOption {
@@ -25,8 +26,16 @@ export interface Report {
   description: string;
   details?: string;
   categoryId: number;
+  subcategoryId?: number;
   subCategories?: string[];
   type: string;
   parameters: ReportParameter[];
   result: any[];
+  requiredPermissions?: string[];
+  mainCategory?: string;
+  reportType?: string;
+  outputMode?: "embed" | "new_tab";
+  engine?: "crystal" | "powerbi" | "devexpress" | "other";
+  engineConfig?: Record<string, any>;
+  reportImage?: string;
 }

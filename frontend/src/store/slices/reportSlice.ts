@@ -4,19 +4,17 @@ export type ViewMode = "cards" | "list" | "details";
 export type SortBy = "name" | "prefix" | "category" | "subcategory";
 
 interface ReportState {
-  // Hierarchy selection
-  selectedGroupId: number | null; // Main Group (e.g. Report Library)
-  selectedCategoryId: number | null; // Report Category (e.g. Sales)
-  selectedSubcategoryId: number | null; // Subcategory (e.g. Customer)
+  selectedGroupId: number | null;
+  selectedCategoryId: number | null;
+  selectedSubcategoryId: number | null;
   selectedReportId: number | null;
-  // Dashboard controls
   searchTerm: string;
   viewMode: ViewMode;
   sortBy: SortBy;
 }
 
 const initialState: ReportState = {
-  selectedGroupId: 1, // default to "Report Library"
+  selectedGroupId: 1,
   selectedCategoryId: null,
   selectedSubcategoryId: null,
   selectedReportId: null,
@@ -62,10 +60,10 @@ const reportSlice = createSlice({
       state.selectedSubcategoryId = null;
       state.selectedReportId = null;
     },
-    // kept for backward-compat callers that still pass string sub-category
-    setSelectedSubCategory: (_state, _action: PayloadAction<string | null>) => {
-      // no-op – callers should migrate to setSelectedSubcategoryId
-    },
+    setSelectedSubCategory: (
+      _state,
+      _action: PayloadAction<string | null>,
+    ) => {},
   },
 });
 

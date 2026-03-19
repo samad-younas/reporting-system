@@ -7,7 +7,8 @@ import {
   FileText,
   Building2,
   Users,
-  ScrollText,
+  Shield,
+  KeyRound,
   Heart,
   Clock,
   ChevronRight,
@@ -21,7 +22,7 @@ import {
   reportCategories,
   reportSubcategories,
 } from "@/utils/exports";
-import { checkPermission } from "@/utils/permissions";
+import { checkPermission, hasPermission } from "@/utils/permissions";
 import {
   setSelectedGroupId,
   setSelectedCategoryId,
@@ -45,7 +46,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     useSelector((state: any) => state.report);
   const { userdata } = useSelector((state: any) => state.auth);
 
-  // Track which categories are expanded in the sidebar
   const [expandedCategories, setExpandedCategories] = useState<number[]>([1]);
 
   const toggleCategory = (catId: number) => {
@@ -99,6 +99,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const allowedCategories = reportCategories.filter((cat) =>
     checkPermission(cat, userdata),
   );
+  const canManageUsers = hasPermission(userdata, "users.manage");
+  const canManageRoles = hasPermission(userdata, "roles.manage");
+  const canManageSecurity = hasPermission(userdata, "security.manage");
+  const canManageReports = hasPermission(userdata, "reports.manage");
+  const canSeeEnquiries = hasPermission(userdata, "dashboard.enquiries");
+  const canSeeGridReports = hasPermission(userdata, "dashboard.grid");
 
   const isOnReports = location.pathname === "/all-reports";
 
@@ -299,6 +305,50 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">
               Quick Access
             </p>
+            {canSeeEnquiries && (
+              <button
+                onClick={() => handleSimpleNavigation("/enquiries")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                  location.pathname === "/enquiries"
+                    ? "bg-secondary text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <FileText
+                  className={cn(
+                    "w-4 h-4",
+                    location.pathname === "/enquiries"
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                />
+                Enquiries
+              </button>
+            )}
+
+            {canSeeGridReports && (
+              <button
+                onClick={() => handleSimpleNavigation("/grid-reports")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                  location.pathname === "/grid-reports"
+                    ? "bg-secondary text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <LayoutGrid
+                  className={cn(
+                    "w-4 h-4",
+                    location.pathname === "/grid-reports"
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                />
+                Grid Reports
+              </button>
+            )}
+
             <button
               onClick={() => handleSimpleNavigation("/favourites")}
               className={cn(
@@ -342,85 +392,114 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           <Hr />
 
-          {/* System */}
-          <div className="space-y-0.5 pt-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">
-              System
-            </p>
-            <button
-              onClick={() => {
-                navigate("/ssrs-reports");
-                if (window.innerWidth < 768 && onClose) onClose();
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
-                location.pathname === "/ssrs-reports"
-                  ? "bg-secondary text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-              )}
-            >
-              <ScrollText
-                className={cn(
-                  "w-4 h-4",
-                  location.pathname === "/ssrs-reports"
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground",
-                )}
-              />
-              SSRS Reports
-            </button>
-          </div>
-
           {/* Admin */}
-          {["admin", "super-admin"].includes(userdata?.user_type) && (
+          {(canManageUsers ||
+            canManageRoles ||
+            canManageSecurity ||
+            canManageReports) && (
             <div className="space-y-0.5 pt-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">
                 Admin
               </p>
-              <button
-                onClick={() => {
-                  navigate("/user-management");
-                  if (window.innerWidth < 768 && onClose) onClose();
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
-                  location.pathname === "/user-management"
-                    ? "bg-secondary text-foreground font-semibold"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                )}
-              >
-                <Users
+              {canManageUsers && (
+                <button
+                  onClick={() => {
+                    navigate("/user-management");
+                    if (window.innerWidth < 768 && onClose) onClose();
+                  }}
                   className={cn(
-                    "w-4 h-4",
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
                     location.pathname === "/user-management"
-                      ? "text-primary"
-                      : "text-muted-foreground group-hover:text-foreground",
+                      ? "bg-secondary text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   )}
-                />
-                User Management
-              </button>
-              <button
-                onClick={() => {
-                  navigate("/report-management");
-                  if (window.innerWidth < 768 && onClose) onClose();
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
-                  location.pathname === "/report-management"
-                    ? "bg-secondary text-foreground font-semibold"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                )}
-              >
-                <FileText
+                >
+                  <Users
+                    className={cn(
+                      "w-4 h-4",
+                      location.pathname === "/user-management"
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  User Management
+                </button>
+              )}
+
+              {canManageRoles && (
+                <button
+                  onClick={() => {
+                    navigate("/role-management");
+                    if (window.innerWidth < 768 && onClose) onClose();
+                  }}
                   className={cn(
-                    "w-4 h-4",
-                    location.pathname === "/report-management"
-                      ? "text-primary"
-                      : "text-muted-foreground group-hover:text-foreground",
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                    location.pathname === "/role-management"
+                      ? "bg-secondary text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   )}
-                />
-                Report Management
-              </button>
+                >
+                  <KeyRound
+                    className={cn(
+                      "w-4 h-4",
+                      location.pathname === "/role-management"
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  Role Management
+                </button>
+              )}
+
+              {canManageSecurity && (
+                <button
+                  onClick={() => {
+                    navigate("/security-management");
+                    if (window.innerWidth < 768 && onClose) onClose();
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                    location.pathname === "/security-management"
+                      ? "bg-secondary text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  )}
+                >
+                  <Shield
+                    className={cn(
+                      "w-4 h-4",
+                      location.pathname === "/security-management"
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  Security Management
+                </button>
+              )}
+
+              {canManageReports && (
+                <button
+                  onClick={() => {
+                    navigate("/report-management");
+                    if (window.innerWidth < 768 && onClose) onClose();
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group",
+                    location.pathname === "/report-management"
+                      ? "bg-secondary text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                  )}
+                >
+                  <FileText
+                    className={cn(
+                      "w-4 h-4",
+                      location.pathname === "/report-management"
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground",
+                    )}
+                  />
+                  Report Management
+                </button>
+              )}
             </div>
           )}
         </div>

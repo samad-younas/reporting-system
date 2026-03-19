@@ -143,6 +143,12 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex gap-4 items-center">
+          <Button variant="outline" onClick={() => navigate("/enquiries")}>
+            Enquiries
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/grid-reports")}>
+            Grid Reports
+          </Button>
           <Button
             className="gap-2 shadow-md"
             onClick={() =>

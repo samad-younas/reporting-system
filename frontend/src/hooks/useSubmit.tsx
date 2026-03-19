@@ -16,6 +16,15 @@ export const useSubmit = ({
 }: UseSubmitParams) => {
   const { token } = useSelector((state: any) => state.auth);
 
+  const parseResponseBody = (rawBody: string) => {
+    if (!rawBody) return null;
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return { message: rawBody };
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: async (data: any) => {
       const finalEndpoint =
@@ -29,11 +38,13 @@ export const useSubmit = ({
         body: JSON.stringify(data),
       });
 
-      const res_data = await response.json();
+      const rawBody = await response.text();
+      const res_data = parseResponseBody(rawBody);
 
       if (!response.ok) {
-        toast.error(res_data.message || "Submission failed");
-        return;
+        const message = res_data?.message || "Submission failed";
+        toast.error(message);
+        throw new Error(message);
       }
 
       return res_data;

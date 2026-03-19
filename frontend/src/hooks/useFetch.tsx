@@ -11,6 +11,15 @@ interface UseFetchParams {
 export const useFetch = ({ endpoint, isAuth = false }: UseFetchParams) => {
   const { token } = useSelector((state: any) => state.auth);
 
+  const parseResponseBody = (rawBody: string) => {
+    if (!rawBody) return null;
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return { message: rawBody };
+    }
+  };
+
   const query = useQuery({
     queryKey: [endpoint, isAuth ? token : null],
     enabled: !!endpoint,
@@ -22,10 +31,11 @@ export const useFetch = ({ endpoint, isAuth = false }: UseFetchParams) => {
         },
       });
 
-      const res_data = await response.json();
+      const rawBody = await response.text();
+      const res_data = parseResponseBody(rawBody);
 
       if (!response.ok) {
-        const message = res_data.message || "Fetch failed";
+        const message = res_data?.message || "Fetch failed";
         toast.error(message);
         throw new Error(message);
       }

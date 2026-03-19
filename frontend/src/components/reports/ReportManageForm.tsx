@@ -17,6 +17,7 @@ import {
 } from "@/utils/exports";
 import { Plus, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useFetch } from "@/hooks/useFetch";
 
 // Mock Textarea if not exists, but usually simple-dialog implies some UI lib.
 // checking workspace, ui/textarea not listed in initial file list but assuming standard shadcn.
@@ -35,15 +36,33 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
   onCancel,
   isSubmitting,
 }) => {
+  const { data: metadata } = useFetch({
+    endpoint: "api/reports/meta",
+    isAuth: true,
+  });
+
+  const dynamicCategories = Array.isArray(metadata?.categories)
+    ? metadata.categories
+    : reportCategories;
+  const dynamicSubcategories = Array.isArray(metadata?.subcategories)
+    ? metadata.subcategories
+    : reportSubcategories;
+
   const [formData, setFormData] = useState<Partial<Report>>({
     name: "",
     prefix: "",
     description: "",
     details: "",
+    mainCategory: "",
     categoryId: 1,
     subcategoryId: 1,
+    reportType: "Operational",
     type: "table",
-    allowedRoles: ["admin", "manager"],
+    outputMode: "new_tab",
+    engine: "crystal",
+    engineConfig: {},
+    reportImage: "",
+    requiredPermissions: ["reports.view"],
     parameters: [],
     result: [],
   });
@@ -54,7 +73,9 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
     if (initialData) {
       setFormData({
         ...initialData,
-        allowedRoles: initialData.allowedRoles || [],
+        requiredPermissions: initialData.requiredPermissions || [
+          "reports.view",
+        ],
       });
       setParameters(initialData.parameters || []);
     }
@@ -156,8 +177,8 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
               const catId = parseInt(val);
               handleChange("categoryId", catId);
               // auto-select first subcategory of new category
-              const firstSub = reportSubcategories.find(
-                (s) => s.categoryId === catId,
+              const firstSub = dynamicSubcategories.find(
+                (s: any) => s.categoryId === catId,
               );
               if (firstSub) handleChange("subcategoryId", firstSub.id);
             }}
@@ -166,7 +187,7 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent>
-              {reportCategories.map((cat) => (
+              {dynamicCategories.map((cat: any) => (
                 <SelectItem key={cat.id} value={cat.id.toString()}>
                   {cat.name}
                 </SelectItem>
@@ -187,15 +208,35 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
               <SelectValue placeholder="Select Subcategory" />
             </SelectTrigger>
             <SelectContent>
-              {reportSubcategories
-                .filter((s) => s.categoryId === (formData.categoryId ?? 1))
-                .map((sub) => (
+              {dynamicSubcategories
+                .filter((s: any) => s.categoryId === (formData.categoryId ?? 1))
+                .map((sub: any) => (
                   <SelectItem key={sub.id} value={sub.id.toString()}>
                     {sub.name}
                   </SelectItem>
                 ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="mainCategory">Main Category</Label>
+          <Input
+            id="mainCategory"
+            value={formData.mainCategory || ""}
+            onChange={(e) => handleChange("mainCategory", e.target.value)}
+            placeholder="e.g. Financial"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="reportType">Report Classification</Label>
+          <Input
+            id="reportType"
+            value={formData.reportType || ""}
+            onChange={(e) => handleChange("reportType", e.target.value)}
+            placeholder="e.g. Transactional / Summary / Audit"
+          />
         </div>
 
         <div className="space-y-2">
@@ -211,6 +252,42 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
               <SelectItem value="table">Table</SelectItem>
               <SelectItem value="pdf">PDF</SelectItem>
               <SelectItem value="chart">Chart</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="outputMode">Report Output Mode</Label>
+          <Select
+            value={formData.outputMode || "new_tab"}
+            onValueChange={(val: "embed" | "new_tab") =>
+              handleChange("outputMode", val)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new_tab">Open in New Tab</SelectItem>
+              <SelectItem value="embed">Embed in View</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="engine">Report Engine</Label>
+          <Select
+            value={formData.engine || "crystal"}
+            onValueChange={(val: any) => handleChange("engine", val)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="crystal">Crystal Reports</SelectItem>
+              <SelectItem value="powerbi">Power BI</SelectItem>
+              <SelectItem value="devexpress">DevExpress</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -238,29 +315,51 @@ const ReportManageForm: React.FC<ReportManageFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label>Allowed Roles</Label>
-        <div className="flex flex-wrap gap-4 pt-1">
-          {["admin", "manager", "sales", "user", "super-admin"].map((role) => (
-            <label
-              key={role}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                checked={formData.allowedRoles?.includes(role)}
-                onChange={() => {
-                  const current = formData.allowedRoles || [];
-                  const newValue = current.includes(role)
-                    ? current.filter((r) => r !== role)
-                    : [...current, role];
-                  handleChange("allowedRoles", newValue);
-                }}
-              />
-              <span className="text-sm capitalize">{role}</span>
-            </label>
-          ))}
-        </div>
+        <Label htmlFor="requiredPermissions">
+          Required Permissions (comma separated)
+        </Label>
+        <Input
+          id="requiredPermissions"
+          value={(formData.requiredPermissions || []).join(",")}
+          onChange={(e) =>
+            handleChange(
+              "requiredPermissions",
+              e.target.value
+                .split(",")
+                .map((value) => value.trim())
+                .filter(Boolean),
+            )
+          }
+          placeholder="reports.view,reports.export"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="reportImage">Report Image / Preview URL</Label>
+        <Input
+          id="reportImage"
+          value={formData.reportImage || ""}
+          onChange={(e) => handleChange("reportImage", e.target.value)}
+          placeholder="https://..."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="engineConfig">Engine Config (JSON)</Label>
+        <textarea
+          className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          id="engineConfig"
+          value={JSON.stringify(formData.engineConfig || {}, null, 2)}
+          onChange={(e) => {
+            try {
+              const value = e.target.value.trim();
+              handleChange("engineConfig", value ? JSON.parse(value) : {});
+            } catch {
+              // Keep typing friendly while JSON is incomplete.
+            }
+          }}
+          placeholder='{"reportPath":"/reports/sales"}'
+        />
       </div>
 
       <div className="space-y-2">

@@ -11,7 +11,7 @@ import {
   reportGroups,
   type Report,
 } from "@/utils/exports";
-import { checkPermission } from "@/utils/permissions";
+import { checkPermission, hasPermission } from "@/utils/permissions";
 import DynamicForm from "@/components/reports/DynamicForm";
 import {
   setSelectedReportId,
@@ -40,9 +40,16 @@ import {
   Server,
   Globe,
   RefreshCw,
+  Heart,
+  ExternalLink,
 } from "lucide-react";
 import { Crystal } from "crystis-react";
 import { cn } from "@/lib/utils";
+import {
+  addRecentReport,
+  getFavouriteReportIds,
+  toggleFavouriteReport,
+} from "@/utils/favourites";
 
 const Hr = () => <div className="h-px w-full bg-border my-4" />;
 
@@ -278,6 +285,11 @@ const AllReports: React.FC = () => {
   const [localSearch, setLocalSearch] = useState("");
   const [reportUrl, setReportUrl] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [favouriteIds, setFavouriteIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    setFavouriteIds(getFavouriteReportIds());
+  }, []);
 
   const activeReport = useMemo(() => {
     const report = reports.find((r) => r.id === selectedReportId);
@@ -326,9 +338,21 @@ const AllReports: React.FC = () => {
       );
       const encrypted = await crystal.encrypt(query);
       if (encrypted.tekst1 === "Ok") {
-        setReportUrl(
-          `https://www.pro.siteknower.com/CrystalReportB.aspx?enc=${encrypted.tekst3}`,
-        );
+        const generatedUrl = `https://www.pro.siteknower.com/CrystalReportB.aspx?enc=${encrypted.tekst3}`;
+        setReportUrl(generatedUrl);
+
+        if ((activeReport.outputMode || "new_tab") === "new_tab") {
+          const opened = window.open(
+            generatedUrl,
+            "_blank",
+            "noopener,noreferrer",
+          );
+          if (!opened) {
+            alert(
+              "Popup was blocked. The report will be shown below in this page.",
+            );
+          }
+        }
       } else {
         throw new Error(encrypted.tekst2);
       }
@@ -411,6 +435,16 @@ const AllReports: React.FC = () => {
 
   const handleReportSelect = (id: number) => dispatch(setSelectedReportId(id));
 
+  const handleToggleFavourite = (id: number) => {
+    const updated = toggleFavouriteReport(id);
+    setFavouriteIds(updated);
+  };
+
+  const handleSelectReport = (id: number) => {
+    addRecentReport(id);
+    handleReportSelect(id);
+  };
+
   const breadcrumb = useMemo(() => {
     const group = reportGroups[0];
     const cat = reportCategories.find((c) => c.id === selectedCategoryId);
@@ -482,13 +516,37 @@ const AllReports: React.FC = () => {
               )}
             </div>
           </div>
-          <Button
-            variant="ghost"
-            onClick={() => dispatch(setSelectedReportId(null))}
-            className="md:self-start"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
+          <div className="flex items-center gap-2 md:self-start">
+            <Button
+              variant={
+                favouriteIds.includes(activeReport.id) ? "default" : "outline"
+              }
+              onClick={() => handleToggleFavourite(activeReport.id)}
+            >
+              <Heart
+                className={cn(
+                  "mr-2 h-4 w-4",
+                  favouriteIds.includes(activeReport.id) && "fill-current",
+                )}
+              />
+              {favouriteIds.includes(activeReport.id)
+                ? "Favourited"
+                : "Add to Favourites"}
+            </Button>
+            {reportUrl && (
+              <Button asChild variant="outline">
+                <a href={reportUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" /> Open Full Page
+                </a>
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              onClick={() => dispatch(setSelectedReportId(null))}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+          </div>
         </div>
 
         {/* ── Architecture proof-of-concept banner ── */}
@@ -673,7 +731,7 @@ const AllReports: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {["admin", "super-admin"].includes(userdata?.user_type) && (
+            {hasPermission(userdata, "reports.manage") && (
               <Button
                 onClick={() =>
                   navigate("/report-management", {
@@ -743,7 +801,7 @@ const AllReports: React.FC = () => {
                   <ReportCard
                     key={r.id}
                     report={r}
-                    onSelect={handleReportSelect}
+                    onSelect={handleSelectReport}
                   />
                 ))}
               </div>
@@ -754,7 +812,7 @@ const AllReports: React.FC = () => {
                   <ReportListRow
                     key={r.id}
                     report={r}
-                    onSelect={handleReportSelect}
+                    onSelect={handleSelectReport}
                   />
                 ))}
               </div>
@@ -788,7 +846,7 @@ const AllReports: React.FC = () => {
                       <ReportDetailsRow
                         key={r.id}
                         report={r}
-                        onSelect={handleReportSelect}
+                        onSelect={handleSelectReport}
                       />
                     ))}
                   </tbody>
@@ -844,7 +902,7 @@ const AllReports: React.FC = () => {
                                 <ReportCard
                                   key={r.id}
                                   report={r}
-                                  onSelect={handleReportSelect}
+                                  onSelect={handleSelectReport}
                                 />
                               ))}
                             </div>
@@ -855,7 +913,7 @@ const AllReports: React.FC = () => {
                                 <ReportListRow
                                   key={r.id}
                                   report={r}
-                                  onSelect={handleReportSelect}
+                                  onSelect={handleSelectReport}
                                 />
                               ))}
                             </div>
@@ -889,7 +947,7 @@ const AllReports: React.FC = () => {
                                     <ReportDetailsRow
                                       key={r.id}
                                       report={r}
-                                      onSelect={handleReportSelect}
+                                      onSelect={handleSelectReport}
                                     />
                                   ))}
                                 </tbody>

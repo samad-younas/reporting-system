@@ -1,21 +1,117 @@
 import type { Report, ReportCategory } from "./exports";
 
+type PermissionCarrier = {
+  permission_key?: string;
+  key?: string;
+  name?: string;
+  is_allowed?: boolean;
+};
+
+const normalizeRole = (role: string): string => role.trim().toLowerCase();
+
+const roleAliases = (role: string): string[] => {
+  const normalized = normalizeRole(role);
+
+  if (normalized === "admin") return ["admin", "super-admin", "superadmin"];
+  if (normalized === "super-admin" || normalized === "superadmin") {
+    return ["super-admin", "superadmin", "admin"];
+  }
+
+  return [normalized];
+};
+
+const normalizePermissionList = (raw: unknown): string[] => {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .flatMap((entry) => {
+      if (typeof entry === "string") return [entry];
+      if (entry && typeof entry === "object") {
+        const item = entry as PermissionCarrier;
+        if (item.is_allowed === false) return [];
+        return [item.permission_key || item.key || item.name || ""];
+      }
+      return [];
+    })
+    .map((key) => key.trim())
+    .filter(Boolean);
+};
+
+export const getUserPermissions = (userdata: any): string[] => {
+  if (!userdata) return [];
+
+  const direct = normalizePermissionList(userdata.permissions);
+  if (direct.length) return direct;
+
+  const fromRoles = Array.isArray(userdata.roles)
+    ? userdata.roles.flatMap((role: any) =>
+        normalizePermissionList(role?.permissions),
+      )
+    : [];
+
+  return Array.from(new Set(fromRoles));
+};
+
+export const hasPermission = (userdata: any, permission: string): boolean => {
+  if (!permission) return true;
+
+  const userPermissions = getUserPermissions(userdata);
+  return userPermissions.includes(permission);
+};
+
+export const hasAnyPermission = (
+  userdata: any,
+  permissions: string[] | undefined,
+): boolean => {
+  if (!permissions || permissions.length === 0) return true;
+  return permissions.some((permission) => hasPermission(userdata, permission));
+};
+
 export const checkPermission = (
   item: Report | ReportCategory,
   userdata: any, // Typed loosely as any in app, but structure is UserData
 ) => {
-  if (!userdata) return true; // Fail safe or default allow/deny depending on policy. Assuming true for dev.
+  if (!userdata) return false;
 
-  // Super Admin Bypass
-  if (userdata.user_type === "super-admin") {
+  // Legacy super-admin compatibility
+  if (
+    normalizeRole(userdata.user_type || "") === "super-admin" ||
+    normalizeRole(userdata.role || "") === "super-admin"
+  ) {
     return true;
+  }
+
+  if (
+    Array.isArray(item.requiredPermissions) &&
+    item.requiredPermissions.length > 0
+  ) {
+    if (!hasAnyPermission(userdata, item.requiredPermissions)) {
+      return false;
+    }
   }
 
   const profile = userdata.profile || {};
 
-  // Role Check
+  // Legacy role fallback for local mock data
   if (item.allowedRoles && item.allowedRoles.length > 0) {
-    if (!item.allowedRoles.includes(userdata.user_type)) return false;
+    const roleNames = [
+      userdata.user_type,
+      userdata.role,
+      ...(Array.isArray(userdata.roles)
+        ? userdata.roles.map((r: any) => r.role_name || r.name).filter(Boolean)
+        : []),
+    ]
+      .filter(Boolean)
+      .flatMap((role) => roleAliases(String(role)));
+
+    const normalizedAllowedRoles = item.allowedRoles
+      .map((role) => normalizeRole(role))
+      .flatMap((role) => roleAliases(role));
+
+    const hasRole = normalizedAllowedRoles.some((allowed) =>
+      roleNames.includes(allowed),
+    );
+    if (!hasRole) return false;
   }
 
   // Geographic Checks

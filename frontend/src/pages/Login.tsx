@@ -16,11 +16,12 @@ import { useSubmit } from "@/hooks/useSubmit";
 import { toast } from "react-toastify";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "@/config/authConfig";
+import { apiURL } from "@/utils/exports";
 
 const Login: React.FC = () => {
   const { isPending, mutateAsync } = useSubmit({
     method: "POST",
-    endpoint: "api/login",
+    endpoint: "api/auth/login",
     isAuth: false,
   });
   const navigate = useNavigate();
@@ -30,6 +31,10 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaChallengeToken, setMfaChallengeToken] = useState("");
+  const [requiresMfa, setRequiresMfa] = useState(false);
+  const [isVerifyingMfa, setIsVerifyingMfa] = useState(false);
 
   const handleMicrosoftLogin = async () => {
     try {
@@ -57,12 +62,52 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (requiresMfa) {
+        setIsVerifyingMfa(true);
+        const response = await fetch(`${apiURL}api/auth/mfa/verify`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${mfaChallengeToken}`,
+          },
+          body: JSON.stringify({ code: mfaCode }),
+        });
+        const data = await response.json();
+        setIsVerifyingMfa(false);
+
+        if (!data?.token) {
+          toast.error(data?.message || "Invalid MFA code.");
+          return;
+        }
+
+        dispatch(setToken({ token: data.token }));
+        dispatch(setUser({ userdata: data.user }));
+        toast.success(data.message || "MFA verification successful!");
+        navigate("/dashboard");
+        return;
+      }
+
       const data = await mutateAsync({ email, password });
+
+      if (data?.mfa_required && data?.mfa_challenge_token) {
+        setMfaChallengeToken(data.mfa_challenge_token);
+        setRequiresMfa(true);
+        toast.info("MFA required. Enter your 6-digit code to continue.");
+        return;
+      }
+
+      if (!data?.token) {
+        toast.error(data?.message || "Login failed.");
+        return;
+      }
+
       dispatch(setToken({ token: data.token }));
       dispatch(setUser({ userdata: data.user }));
       toast.success(data.message || "Login successful!");
       navigate("/dashboard");
     } catch (error) {
+      setIsVerifyingMfa(false);
       console.error("Login failed:", error);
     }
   };
@@ -119,7 +164,8 @@ const Login: React.FC = () => {
                   name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  required={!requiresMfa}
+                  disabled={requiresMfa}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="Enter your password"
                 />
@@ -141,14 +187,48 @@ const Login: React.FC = () => {
                   </label>
                 </div>
               </div>
+
+              {requiresMfa && (
+                <div className="space-y-2">
+                  <label
+                    htmlFor="mfa-code"
+                    className="text-sm font-medium leading-none"
+                  >
+                    MFA Code
+                  </label>
+                  <input
+                    type="text"
+                    id="mfa-code"
+                    name="mfa-code"
+                    value={mfaCode}
+                    onChange={(e) =>
+                      setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
+                    required={requiresMfa}
+                    inputMode="numeric"
+                    maxLength={6}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm tracking-[0.35em] text-center ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    placeholder="123456"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    MFA challenge received. Enter your authenticator app code.
+                  </p>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex justify-between mt-5">
               <Button
                 type="submit"
                 className="w-full cursor-pointer"
-                disabled={isPending}
+                disabled={isPending || isVerifyingMfa}
               >
-                {isPending ? "Logging in..." : "Login"}
+                {isPending
+                  ? "Logging in..."
+                  : isVerifyingMfa
+                    ? "Verifying MFA..."
+                    : requiresMfa
+                      ? "Verify MFA"
+                      : "Login"}
               </Button>
             </CardFooter>
           </form>

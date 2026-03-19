@@ -4,11 +4,22 @@ import { useFetch } from "@/hooks/useFetch";
 import { LoadingSpinner } from "./LoadingSpinner";
 import type { UserFormData } from "@/types/user";
 
+interface SecurityOption {
+  id: number;
+  name: string;
+}
+
 interface UserManageFormProps {
   isSubmitting?: boolean;
   initialData?: UserFormData | null;
   onSubmit: (data: UserFormData) => void;
   onCancel: () => void;
+  securityOptions?: {
+    regions: SecurityOption[];
+    productGroups: SecurityOption[];
+    customerGroups: SecurityOption[];
+  };
+  isSecurityLoading?: boolean;
 }
 
 const UserManageForm: React.FC<UserManageFormProps> = ({
@@ -16,11 +27,20 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
+  securityOptions,
+  isSecurityLoading = false,
 }) => {
   const { isPending, data: rolesData } = useFetch({
-    endpoint: "api/get-all-permission",
+    endpoint: "api/roles",
     isAuth: true,
   });
+
+  const normalizedRoles = Array.isArray(rolesData)
+    ? rolesData
+    : Array.isArray(rolesData?.data)
+      ? rolesData.data
+      : [];
+
   const [formData, setFormData] = React.useState<UserFormData>({
     email: "",
     password: "",
@@ -36,6 +56,12 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
       is_cost_visible: false,
       is_inactive: false,
     },
+    access_mappings: {
+      region_ids: [],
+      product_group_ids: [],
+      customer_group_ids: [],
+    },
+    role_ids: [],
   });
 
   useEffect(() => {
@@ -58,6 +84,12 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           is_cost_visible: false,
           is_inactive: false,
         },
+        access_mappings: {
+          region_ids: [],
+          product_group_ids: [],
+          customer_group_ids: [],
+        },
+        role_ids: [],
       });
     }
   }, [initialData]);
@@ -75,18 +107,33 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
-    const selectedRole = Array.isArray(rolesData)
-      ? rolesData.find((r: any) => r.id === selectedId)
-      : null;
+    const selectedIds = Array.from(e.target.selectedOptions)
+      .map((option) => parseInt(option.value, 10))
+      .filter((id) => !isNaN(id));
 
-    if (selectedRole) {
-      setFormData((prev) => ({
-        ...prev,
-        user_type: selectedRole.roles,
-        role_id: selectedRole.id,
-      }));
-    }
+    const selectedRoles = normalizedRoles.filter((role: any) =>
+      selectedIds.includes(Number(role.id)),
+    );
+
+    const roleLabel = selectedRoles
+      .map((role: any) => role.role_name || role.name || "")
+      .filter(Boolean)
+      .join(", ");
+
+    setFormData((prev) => ({
+      ...prev,
+      user_type: roleLabel,
+      role_id: selectedIds[0],
+      role_ids: selectedIds,
+      profile: {
+        ...prev.profile,
+        can_export: selectedRoles.some((role: any) =>
+          Array.isArray(role?.permissions)
+            ? role.permissions.includes("reports.export")
+            : false,
+        ),
+      },
+    }));
   };
 
   const handleProfileChange = (
@@ -108,7 +155,24 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     e.preventDefault();
     onSubmit(formData);
   };
-  if (isPending) {
+
+  const handleAccessMappingChange = (
+    key: "region_ids" | "product_group_ids" | "customer_group_ids",
+    values: string[],
+  ) => {
+    const ids = values.map((v) => parseInt(v, 10)).filter((v) => !isNaN(v));
+    setFormData((prev) => ({
+      ...prev,
+      access_mappings: {
+        region_ids: prev.access_mappings?.region_ids || [],
+        product_group_ids: prev.access_mappings?.product_group_ids || [],
+        customer_group_ids: prev.access_mappings?.customer_group_ids || [],
+        [key]: ids,
+      },
+    }));
+  };
+
+  if (isPending || isSecurityLoading) {
     return <LoadingSpinner />;
   }
 
@@ -155,24 +219,29 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">User Type</label>
+          <label className="text-sm font-medium">Roles</label>
           <select
-            name="role_id"
-            value={formData.role_id || ""}
+            name="role_ids"
+            multiple
+            value={(formData.role_ids && formData.role_ids.length > 0
+              ? formData.role_ids
+              : formData.role_id
+                ? [formData.role_id]
+                : []
+            ).map(String)}
             onChange={handleRoleChange}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="flex min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             disabled={!rolesData}
           >
-            <option value="" disabled>
-              Select User Type
-            </option>
-            {Array.isArray(rolesData) &&
-              rolesData.map((role: any) => (
-                <option key={role.id} value={role.id}>
-                  {role.roles}
-                </option>
-              ))}
+            {normalizedRoles.map((role: any) => (
+              <option key={role.id} value={role.id}>
+                {role.role_name || role.name}
+              </option>
+            ))}
           </select>
+          <p className="text-xs text-muted-foreground">
+            Hold Command (Mac) or Ctrl (Windows) to select multiple roles.
+          </p>
         </div>
       </div>
 
@@ -268,6 +337,86 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
           <label className="text-sm font-medium cursor-pointer">
             Is Inactive
           </label>
+        </div>
+      </div>
+
+      <div className="border-t pt-4 mt-2">
+        <h3 className="text-sm font-bold mb-3">Data Visibility Mapping</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Map user access to security dimensions. Hold Command (Mac) or Ctrl
+          (Windows) to select multiple entries.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Regions</label>
+            <select
+              multiple
+              className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={formData.access_mappings?.region_ids?.map(String) || []}
+              onChange={(e) =>
+                handleAccessMappingChange(
+                  "region_ids",
+                  Array.from(e.target.selectedOptions).map(
+                    (option) => option.value,
+                  ),
+                )
+              }
+            >
+              {(securityOptions?.regions || []).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Product Groups</label>
+            <select
+              multiple
+              className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={
+                formData.access_mappings?.product_group_ids?.map(String) || []
+              }
+              onChange={(e) =>
+                handleAccessMappingChange(
+                  "product_group_ids",
+                  Array.from(e.target.selectedOptions).map(
+                    (option) => option.value,
+                  ),
+                )
+              }
+            >
+              {(securityOptions?.productGroups || []).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Customer Groups</label>
+            <select
+              multiple
+              className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={
+                formData.access_mappings?.customer_group_ids?.map(String) || []
+              }
+              onChange={(e) =>
+                handleAccessMappingChange(
+                  "customer_group_ids",
+                  Array.from(e.target.selectedOptions).map(
+                    (option) => option.value,
+                  ),
+                )
+              }
+            >
+              {(securityOptions?.customerGroups || []).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

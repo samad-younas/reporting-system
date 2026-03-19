@@ -20,10 +20,21 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { userdata } = useSelector((state: any) => state.auth);
+  const primaryRole =
+    userdata?.roles?.[0]?.role_name ||
+    userdata?.roles?.[0]?.name ||
+    userdata?.role ||
+    userdata?.user_type ||
+    "User";
+  const displayName =
+    userdata?.display_name ||
+    userdata?.profile?.full_name ||
+    userdata?.username ||
+    "User";
 
   const { mutateAsync } = useSubmit({
     method: "POST",
-    endpoint: "api/logout",
+    endpoint: "api/auth/logout",
     isAuth: true,
   });
 
@@ -60,12 +71,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               </div>
 
               <div className="hidden sm:flex flex-col items-start text-sm leading-tight">
-                <span className="font-medium text-gray-800">
-                  {userdata?.profile?.full_name || "Stephen R"}
-                </span>
-                <span className="text-gray-500 text-xs">
-                  {userdata?.user_type || "Regional Manager"}
-                </span>
+                <span className="font-medium text-gray-800">{displayName}</span>
+                <span className="text-gray-500 text-xs">{primaryRole}</span>
               </div>
 
               <ChevronDown className="w-4 h-4 text-gray-500 hidden sm:block" />
