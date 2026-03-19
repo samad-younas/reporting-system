@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MoreHorizontalIcon } from "lucide-react";
+import { MoreHorizontalIcon, UserRoundX } from "lucide-react";
 import type { User } from "@/types/user";
 
 interface UserTableProps {
@@ -47,90 +48,126 @@ const UserTable: React.FC<UserTableProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-bold text-lg">ID</TableHead>
-              <TableHead className="font-bold text-lg">Email</TableHead>
-              <TableHead className="font-bold text-lg">Full Name</TableHead>
-              <TableHead className="font-bold text-lg">User Type</TableHead>
-              <TableHead className="font-bold text-lg">Location</TableHead>
-              <TableHead className="font-bold text-lg">Can Export</TableHead>
-              <TableHead className="font-bold text-lg">Can Copy</TableHead>
-              <TableHead className="font-bold text-lg">Cost Visible</TableHead>
-              <TableHead className="font-bold text-lg">Status</TableHead>
-              <TableHead className="text-right font-bold text-lg">
-                Actions
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.length === 0 ? (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4">
-                  No users found
-                </TableCell>
+                <TableHead className="font-semibold">ID</TableHead>
+                <TableHead className="font-semibold">Email</TableHead>
+                <TableHead className="font-semibold">Full Name</TableHead>
+                <TableHead className="font-semibold">Role</TableHead>
+                <TableHead className="font-semibold">Location</TableHead>
+                <TableHead className="font-semibold">Access</TableHead>
+                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="text-right font-semibold">
+                  Actions
+                </TableHead>
               </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.id}</TableCell>
-                  <TableCell className="font-medium">{user.email}</TableCell>
-                  <TableCell>{user.profile?.full_name || "N/A"}</TableCell>
-                  <TableCell className="font-medium">
-                    {user.user_type}
-                  </TableCell>
-                  <TableCell>
-                    {user.profile
-                      ? `${user.profile.region} - ${user.profile.country} - ${user.profile.state} - ${user.profile.city}`
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    {user.profile?.can_export ? "Yes" : "No"}
-                  </TableCell>
-                  <TableCell>{user.profile?.can_copy ? "Yes" : "No"}</TableCell>
-                  <TableCell>
-                    {user.profile?.is_cost_visible ? "Yes" : "No"}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${user.profile?.is_inactive ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
-                    >
-                      {user.profile?.is_inactive ? "Inactive" : "Active"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8">
-                          <MoreHorizontalIcon />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(user)}>
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onToggleStatus(user)}>
-                          {user.profile?.is_inactive
-                            ? "Activate"
-                            : "Deactivate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => onDelete(user.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-10 text-center">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <UserRoundX className="h-8 w-8" />
+                      <p className="font-medium">No users found</p>
+                      <p className="text-xs">
+                        Try adjusting your filters or create a new user.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.id}</TableCell>
+                    <TableCell className="font-medium">{user.email}</TableCell>
+                    <TableCell>{user.profile?.full_name || "N/A"}</TableCell>
+                    <TableCell className="font-medium">
+                      {user.user_type || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {user.profile
+                        ? [
+                            user.profile.region,
+                            user.profile.country,
+                            user.profile.state,
+                            user.profile.city,
+                          ]
+                            .filter(Boolean)
+                            .join(" - ") || "N/A"
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            user.profile?.can_export ? "secondary" : "outline"
+                          }
+                        >
+                          Export: {user.profile?.can_export ? "Yes" : "No"}
+                        </Badge>
+                        <Badge
+                          variant={
+                            user.profile?.is_cost_visible
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          Cost: {user.profile?.is_cost_visible ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          user.profile?.is_inactive
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {user.profile?.is_inactive ? "Inactive" : "Active"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                          >
+                            <MoreHorizontalIcon />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(user)}>
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onToggleStatus(user)}
+                          >
+                            {user.profile?.is_inactive
+                              ? "Activate"
+                              : "Deactivate"}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => onDelete(user.id)}
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

@@ -14,6 +14,8 @@ import { hasPermission } from "@/utils/permissions";
 type Option = { id: number; name: string };
 type MappingType = "region" | "product_group" | "customer_group";
 type MappingMode = "single" | "bulk";
+type MappingAccess = "allow" | "deny";
+type RegionType = "state" | "country" | "city" | "other";
 
 type NormalizedMappings = {
   region_ids: number[];
@@ -21,7 +23,8 @@ type NormalizedMappings = {
   customer_group_ids: number[];
 };
 
-const sanitizeName = (value: string): string => value.trim().replace(/\s+/g, " ");
+const sanitizeName = (value: string): string =>
+  value.trim().replace(/\s+/g, " ");
 
 const listFromResponse = (raw: any): any[] => {
   if (Array.isArray(raw)) return raw;
@@ -80,31 +83,59 @@ const normalizeSecurityMappings = (raw: any): NormalizedMappings => {
   };
 
   mappings.forEach((mapping: any) => {
+    const isAllow = mapping?.is_allow ?? true;
+    if (!isAllow) return;
+
     const type = String(
       mapping?.mapping_type || mapping?.dimension_type || "",
     ).toLowerCase();
-    const id = Number(
-      mapping?.dimension_id ||
-        mapping?.region_id ||
-        mapping?.product_group_id ||
-        mapping?.customer_group_id ||
-        mapping?.id,
-    );
 
-    if (!Number.isFinite(id)) return;
+    const regionId =
+      mapping?.region_id !== null && mapping?.region_id !== undefined
+        ? Number(mapping.region_id)
+        : null;
+    const productGroupId =
+      mapping?.product_group_id !== null &&
+      mapping?.product_group_id !== undefined
+        ? Number(mapping.product_group_id)
+        : null;
+    const customerGroupId =
+      mapping?.customer_group_id !== null &&
+      mapping?.customer_group_id !== undefined
+        ? Number(mapping.customer_group_id)
+        : null;
+    const dimensionId =
+      mapping?.dimension_id !== null && mapping?.dimension_id !== undefined
+        ? Number(mapping.dimension_id)
+        : null;
 
-    if (type.includes("region") || mapping?.region_id) {
-      out.region_ids.push(id);
+    if (Number.isFinite(regionId)) {
+      out.region_ids.push(regionId as number);
       return;
     }
 
-    if (type.includes("product") || mapping?.product_group_id) {
-      out.product_group_ids.push(id);
+    if (Number.isFinite(productGroupId)) {
+      out.product_group_ids.push(productGroupId as number);
       return;
     }
 
-    if (type.includes("customer") || mapping?.customer_group_id) {
-      out.customer_group_ids.push(id);
+    if (Number.isFinite(customerGroupId)) {
+      out.customer_group_ids.push(customerGroupId as number);
+      return;
+    }
+
+    if (Number.isFinite(dimensionId)) {
+      if (type.includes("region")) {
+        out.region_ids.push(dimensionId as number);
+        return;
+      }
+      if (type.includes("product")) {
+        out.product_group_ids.push(dimensionId as number);
+        return;
+      }
+      if (type.includes("customer")) {
+        out.customer_group_ids.push(dimensionId as number);
+      }
     }
   });
 
@@ -121,24 +152,20 @@ const getMappingTypeLabel = (value: MappingType): string => {
   return "Region";
 };
 
-const getMappingIdKey = (mappingType: MappingType): string => {
-  if (mappingType === "product_group") return "product_group_id";
-  if (mappingType === "customer_group") return "customer_group_id";
-  return "region_id";
-};
-
 const ManageSecurity: React.FC = () => {
   const { userdata } = useSelector((state: any) => state.auth);
   const canManageSecurity = hasPermission(userdata, "security.manage");
 
   const [regionName, setRegionName] = useState("");
   const [regionParentId, setRegionParentId] = useState("");
+  const [regionType, setRegionType] = useState<RegionType>("state");
   const [productGroupName, setProductGroupName] = useState("");
   const [customerGroupName, setCustomerGroupName] = useState("");
 
   const [mappingMode, setMappingMode] = useState<MappingMode>("single");
   const [mappingUserId, setMappingUserId] = useState("");
   const [mappingType, setMappingType] = useState<MappingType>("region");
+  const [mappingAccess, setMappingAccess] = useState<MappingAccess>("allow");
   const [mappingDimensionId, setMappingDimensionId] = useState("");
   const [bulkDimensionIds, setBulkDimensionIds] = useState<string[]>([]);
 
@@ -182,7 +209,9 @@ const ManageSecurity: React.FC = () => {
     isPending: userMappingsLoading,
     refetch: refetchUserMappings,
   } = useFetch({
-    endpoint: mappingUserId ? `api/security/mappings?user_id=${mappingUserId}` : undefined,
+    endpoint: mappingUserId
+      ? `api/security/mappings?user_id=${mappingUserId}`
+      : undefined,
     isAuth: true,
   });
 
@@ -212,13 +241,12 @@ const ManageSecurity: React.FC = () => {
     isAuth: true,
   });
 
-  const { isPending: replacingMappings, mutateAsync: replaceMappings } = useSubmit(
-    {
+  const { isPending: replacingMappings, mutateAsync: replaceMappings } =
+    useSubmit({
       method: "POST",
       endpoint: "api/security/mappings/bulk",
       isAuth: true,
-    },
-  );
+    });
 
   const { isPending: creatingBuddy, mutateAsync: createBuddy } = useSubmit({
     method: "POST",
@@ -254,7 +282,8 @@ const ManageSecurity: React.FC = () => {
 
   const currentMappingIds = useMemo(() => {
     if (mappingType === "region") return currentMappings.region_ids;
-    if (mappingType === "product_group") return currentMappings.product_group_ids;
+    if (mappingType === "product_group")
+      return currentMappings.product_group_ids;
     return currentMappings.customer_group_ids;
   }, [currentMappings, mappingType]);
 
@@ -288,18 +317,14 @@ const ManageSecurity: React.FC = () => {
 
     try {
       await createRegion({
-        name,
         region_name: name,
-        ...(regionParentId
-          ? {
-              parent_id: Number(regionParentId),
-              parent_region_id: Number(regionParentId),
-            }
-          : {}),
+        parent_region_id: regionParentId ? Number(regionParentId) : null,
+        region_type: regionType,
       });
       toast.success("Region created successfully.");
       setRegionName("");
       setRegionParentId("");
+      setRegionType("state");
       await refetchRegions();
     } catch {
       // useSubmit handles error toast.
@@ -315,7 +340,7 @@ const ManageSecurity: React.FC = () => {
     }
 
     try {
-      await createProductGroup({ name, product_group_name: name });
+      await createProductGroup({ product_group_name: name });
       toast.success("Product group created successfully.");
       setProductGroupName("");
       await refetchProductGroups();
@@ -333,7 +358,7 @@ const ManageSecurity: React.FC = () => {
     }
 
     try {
-      await createCustomerGroup({ name, customer_group_name: name });
+      await createCustomerGroup({ customer_group_name: name });
       toast.success("Customer group created successfully.");
       setCustomerGroupName("");
       await refetchCustomerGroups();
@@ -353,43 +378,84 @@ const ManageSecurity: React.FC = () => {
 
     try {
       if (mappingMode === "single") {
-        const dimensionIdNum = Number(mappingDimensionId);
-        if (!Number.isFinite(dimensionIdNum)) {
+        if (!mappingDimensionId) {
           toast.error(`Please select a ${getMappingTypeLabel(mappingType)}.`);
           return;
         }
 
-        const typeIdKey = getMappingIdKey(mappingType);
+        const dimensionIdNum = Number(mappingDimensionId);
+        const isAllSelection = mappingDimensionId === "__ALL__";
+        if (!isAllSelection && !Number.isFinite(dimensionIdNum)) {
+          toast.error(`Please select a ${getMappingTypeLabel(mappingType)}.`);
+          return;
+        }
+
         await createMapping({
           user_id: userIdNum,
-          mapping_type: mappingType,
-          dimension_type: mappingType,
-          dimension_id: dimensionIdNum,
-          [typeIdKey]: dimensionIdNum,
+          region_id:
+            mappingType === "region" && !isAllSelection ? dimensionIdNum : null,
+          product_group_id:
+            mappingType === "product_group" && !isAllSelection
+              ? dimensionIdNum
+              : null,
+          customer_group_id:
+            mappingType === "customer_group" && !isAllSelection
+              ? dimensionIdNum
+              : null,
+          is_allow: mappingAccess === "allow",
         });
 
         toast.success("Security mapping added successfully.");
         setMappingDimensionId("");
       } else {
-        const selectedIds = bulkDimensionIds
-          .map((id) => Number(id))
-          .filter((id) => Number.isFinite(id));
+        const selectedIds = Array.from(
+          new Set(
+            bulkDimensionIds
+              .map((id) => Number(id))
+              .filter((id) => Number.isFinite(id)),
+          ),
+        );
+
+        const regionIds =
+          mappingType === "region" ? selectedIds : currentMappings.region_ids;
+        const productGroupIds =
+          mappingType === "product_group"
+            ? selectedIds
+            : currentMappings.product_group_ids;
+        const customerGroupIds =
+          mappingType === "customer_group"
+            ? selectedIds
+            : currentMappings.customer_group_ids;
+
+        const mappings = [
+          ...regionIds.map((id) => ({
+            region_id: id,
+            product_group_id: null,
+            customer_group_id: null,
+            is_allow: mappingAccess === "allow",
+          })),
+          ...productGroupIds.map((id) => ({
+            region_id: null,
+            product_group_id: id,
+            customer_group_id: null,
+            is_allow: mappingAccess === "allow",
+          })),
+          ...customerGroupIds.map((id) => ({
+            region_id: null,
+            product_group_id: null,
+            customer_group_id: id,
+            is_allow: mappingAccess === "allow",
+          })),
+        ];
 
         await replaceMappings({
           user_id: userIdNum,
-          region_ids:
-            mappingType === "region" ? selectedIds : currentMappings.region_ids,
-          product_group_ids:
-            mappingType === "product_group"
-              ? selectedIds
-              : currentMappings.product_group_ids,
-          customer_group_ids:
-            mappingType === "customer_group"
-              ? selectedIds
-              : currentMappings.customer_group_ids,
+          mappings,
         });
 
-        toast.success(`${getMappingTypeLabel(mappingType)} mappings replaced successfully.`);
+        toast.success(
+          `${getMappingTypeLabel(mappingType)} mappings replaced successfully.`,
+        );
       }
 
       await refetchUserMappings();
@@ -421,9 +487,7 @@ const ManageSecurity: React.FC = () => {
       });
       toast.success("Buddy assignment added successfully.");
       setBuddyId("");
-    } catch {
-      // useSubmit handles error toast.
-    }
+    } catch {}
   };
 
   if (
@@ -464,7 +528,8 @@ const ManageSecurity: React.FC = () => {
           Security Management
         </h1>
         <p className="text-muted-foreground mt-1">
-          Manage regions, groups, user access mappings, and buddy access with validated API workflows.
+          Manage regions, groups, user access mappings, and buddy access with
+          validated API workflows.
         </p>
       </div>
 
@@ -502,7 +567,24 @@ const ManageSecurity: React.FC = () => {
                   ))}
                 </select>
               </div>
-              <Button type="submit" disabled={creatingRegion || !sanitizeName(regionName)}>
+              <div className="space-y-2">
+                <Label htmlFor="region_type">Region Type</Label>
+                <select
+                  id="region_type"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={regionType}
+                  onChange={(e) => setRegionType(e.target.value as RegionType)}
+                >
+                  <option value="state">State</option>
+                  <option value="country">Country</option>
+                  <option value="city">City</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <Button
+                type="submit"
+                disabled={creatingRegion || !sanitizeName(regionName)}
+              >
                 {creatingRegion ? "Saving..." : "Create Region"}
               </Button>
             </form>
@@ -526,7 +608,9 @@ const ManageSecurity: React.FC = () => {
               </div>
               <Button
                 type="submit"
-                disabled={creatingProductGroup || !sanitizeName(productGroupName)}
+                disabled={
+                  creatingProductGroup || !sanitizeName(productGroupName)
+                }
               >
                 {creatingProductGroup ? "Saving..." : "Create Product Group"}
               </Button>
@@ -551,7 +635,9 @@ const ManageSecurity: React.FC = () => {
               </div>
               <Button
                 type="submit"
-                disabled={creatingCustomerGroup || !sanitizeName(customerGroupName)}
+                disabled={
+                  creatingCustomerGroup || !sanitizeName(customerGroupName)
+                }
               >
                 {creatingCustomerGroup ? "Saving..." : "Create Customer Group"}
               </Button>
@@ -587,7 +673,9 @@ const ManageSecurity: React.FC = () => {
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={mappingType}
-                  onChange={(e) => setMappingType(e.target.value as MappingType)}
+                  onChange={(e) =>
+                    setMappingType(e.target.value as MappingType)
+                  }
                 >
                   <option value="region">Region</option>
                   <option value="product_group">Product Group</option>
@@ -600,10 +688,26 @@ const ManageSecurity: React.FC = () => {
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={mappingMode}
-                  onChange={(e) => setMappingMode(e.target.value as MappingMode)}
+                  onChange={(e) =>
+                    setMappingMode(e.target.value as MappingMode)
+                  }
                 >
                   <option value="single">Add Single Mapping</option>
                   <option value="bulk">Replace All Mappings (Bulk)</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Rule</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={mappingAccess}
+                  onChange={(e) =>
+                    setMappingAccess(e.target.value as MappingAccess)
+                  }
+                >
+                  <option value="allow">Allow</option>
+                  <option value="deny">Deny</option>
                 </select>
               </div>
 
@@ -616,7 +720,10 @@ const ManageSecurity: React.FC = () => {
                     onChange={(e) => setMappingDimensionId(e.target.value)}
                     required
                   >
-                    <option value="">Select {getMappingTypeLabel(mappingType).toLowerCase()}</option>
+                    <option value="">
+                      Select {getMappingTypeLabel(mappingType).toLowerCase()}
+                    </option>
+                    <option value="__ALL__">All</option>
                     {mappingDimensionOptions.map((option) => (
                       <option key={option.id} value={option.id}>
                         {option.name}
@@ -645,7 +752,8 @@ const ManageSecurity: React.FC = () => {
                     ))}
                   </select>
                   <p className="text-xs text-muted-foreground">
-                    Hold Command on macOS or Ctrl on Windows to select multiple values.
+                    Hold Command on macOS or Ctrl on Windows to select multiple
+                    values.
                   </p>
                 </div>
               )}
@@ -653,10 +761,13 @@ const ManageSecurity: React.FC = () => {
               {mappingUserId && (
                 <div className="rounded-md border bg-muted/20 p-3 space-y-1">
                   <p className="text-sm font-medium">
-                    Current {getMappingTypeLabel(mappingType)} mappings for {selectedUserName || "selected user"}
+                    Current {getMappingTypeLabel(mappingType)} mappings for{" "}
+                    {selectedUserName || "selected user"}
                   </p>
                   {userMappingsLoading ? (
-                    <p className="text-xs text-muted-foreground">Loading mappings...</p>
+                    <p className="text-xs text-muted-foreground">
+                      Loading mappings...
+                    </p>
                   ) : currentMappingNames.length > 0 ? (
                     <ul className="text-xs text-muted-foreground space-y-1">
                       {currentMappingNames.map((name, idx) => (
@@ -664,7 +775,9 @@ const ManageSecurity: React.FC = () => {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No mappings found.</p>
+                    <p className="text-xs text-muted-foreground">
+                      No mappings found.
+                    </p>
                   )}
                 </div>
               )}
@@ -673,7 +786,9 @@ const ManageSecurity: React.FC = () => {
                 type="submit"
                 disabled={
                   isMappingActionPending ||
-                  (mappingMode === "single" ? !isSingleMappingValid : !isBulkMappingValid)
+                  (mappingMode === "single"
+                    ? !isSingleMappingValid
+                    : !isBulkMappingValid)
                 }
               >
                 {isMappingActionPending

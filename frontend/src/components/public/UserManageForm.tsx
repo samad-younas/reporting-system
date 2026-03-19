@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useFetch } from "@/hooks/useFetch";
 import { LoadingSpinner } from "./LoadingSpinner";
 import type { UserFormData } from "@/types/user";
@@ -67,31 +68,32 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
-    } else {
-      setFormData({
-        email: "",
-        password: "",
-        user_type: "",
-        role_id: undefined,
-        profile: {
-          full_name: "",
-          region: "",
-          country: "",
-          state: "",
-          city: "",
-          can_export: false,
-          can_copy: false,
-          is_cost_visible: false,
-          is_inactive: false,
-        },
-        access_mappings: {
-          region_ids: [],
-          product_group_ids: [],
-          customer_group_ids: [],
-        },
-        role_ids: [],
-      });
+      return;
     }
+
+    setFormData({
+      email: "",
+      password: "",
+      user_type: "",
+      role_id: undefined,
+      profile: {
+        full_name: "",
+        region: "",
+        country: "",
+        state: "",
+        city: "",
+        can_export: false,
+        can_copy: false,
+        is_cost_visible: false,
+        is_inactive: false,
+      },
+      access_mappings: {
+        region_ids: [],
+        product_group_ids: [],
+        customer_group_ids: [],
+      },
+      role_ids: [],
+    });
   }, [initialData]);
 
   const handleChange = (
@@ -101,15 +103,14 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     if (Object.keys(formData).includes(name)) {
       setFormData((prev) => ({
         ...prev,
-        [name]: type === "number" ? parseInt(value) : value,
+        [name]: type === "number" ? parseInt(value, 10) : value,
       }));
     }
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedIds = Array.from(e.target.selectedOptions)
-      .map((option) => parseInt(option.value, 10))
-      .filter((id) => !isNaN(id));
+    const selectedRoleId = Number.parseInt(e.target.value, 10);
+    const selectedIds = Number.isFinite(selectedRoleId) ? [selectedRoleId] : [];
 
     const selectedRoles = normalizedRoles.filter((role: any) =>
       selectedIds.includes(Number(role.id)),
@@ -160,7 +161,9 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
     key: "region_ids" | "product_group_ids" | "customer_group_ids",
     values: string[],
   ) => {
-    const ids = values.map((v) => parseInt(v, 10)).filter((v) => !isNaN(v));
+    const ids = values
+      .map((v) => Number.parseInt(v, 10))
+      .filter((v) => !isNaN(v));
     setFormData((prev) => ({
       ...prev,
       access_mappings: {
@@ -179,75 +182,90 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 max-h-[80vh] overflow-y-auto px-1"
+      className="space-y-5 max-h-[80vh] overflow-y-auto px-1"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Full Name</label>
-          <input
-            type="text"
-            name="full_name"
-            value={formData.profile.full_name}
-            onChange={handleProfileChange}
-            required
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          />
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold">Account Details</h3>
+          <Badge variant="outline">Required</Badge>
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder="john@example.com"
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Password</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required={!initialData}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder="******"
-          />
-        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Full Name</label>
+            <input
+              type="text"
+              name="full_name"
+              value={formData.profile.full_name}
+              onChange={handleProfileChange}
+              required
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="John Doe"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Roles</label>
-          <select
-            name="role_ids"
-            multiple
-            value={(formData.role_ids && formData.role_ids.length > 0
-              ? formData.role_ids
-              : formData.role_id
-                ? [formData.role_id]
-                : []
-            ).map(String)}
-            onChange={handleRoleChange}
-            className="flex min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            disabled={!rolesData}
-          >
-            {normalizedRoles.map((role: any) => (
-              <option key={role.id} value={role.id}>
-                {role.role_name || role.name}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder="john@example.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required={!initialData}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder={
+                initialData ? "Leave blank to keep current password" : "******"
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Role</label>
+            <select
+              name="role_id"
+              value={
+                formData.role_id
+                  ? String(formData.role_id)
+                  : formData.role_ids?.[0]
+                    ? String(formData.role_ids[0])
+                    : ""
+              }
+              onChange={handleRoleChange}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              disabled={!rolesData}
+              required
+            >
+              <option value="" disabled>
+                Select one role
               </option>
-            ))}
-          </select>
-          <p className="text-xs text-muted-foreground">
-            Hold Command (Mac) or Ctrl (Windows) to select multiple roles.
-          </p>
+              {normalizedRoles.map((role: any) => (
+                <option key={role.id} value={role.id}>
+                  {role.role_name || role.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Each user can have one primary role.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="border-t pt-4 mt-4">
-        <h3 className="text-sm font-bold mb-3">Profile Details</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="rounded-lg border bg-card p-4">
+        <h3 className="mb-3 text-sm font-semibold">Profile Details</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">Region</label>
             <input
@@ -291,62 +309,59 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 pt-2">
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="can_export"
-            checked={formData.profile.can_export}
-            onChange={handleProfileChange}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
-          />
-          <label className="text-sm font-medium cursor-pointer">
-            Can Export
+      <div className="rounded-lg border bg-card p-4">
+        <h3 className="mb-3 text-sm font-semibold">User Permissions</h3>
+        <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
+            <input
+              type="checkbox"
+              name="can_export"
+              checked={formData.profile.can_export}
+              onChange={handleProfileChange}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+            />
+            <span className="text-sm font-medium">Can Export</span>
           </label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="can_copy"
-            checked={formData.profile.can_copy}
-            onChange={handleProfileChange}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
-          />
-          <label className="text-sm font-medium cursor-pointer">Can Copy</label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="is_cost_visible"
-            checked={formData.profile.is_cost_visible}
-            onChange={handleProfileChange}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
-          />
-          <label className="text-sm font-medium cursor-pointer">
-            Is Cost Visible
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
+            <input
+              type="checkbox"
+              name="can_copy"
+              checked={formData.profile.can_copy}
+              onChange={handleProfileChange}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+            />
+            <span className="text-sm font-medium">Can Copy</span>
           </label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="is_inactive"
-            checked={formData.profile.is_inactive}
-            onChange={handleProfileChange}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
-          />
-          <label className="text-sm font-medium cursor-pointer">
-            Is Inactive
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
+            <input
+              type="checkbox"
+              name="is_cost_visible"
+              checked={formData.profile.is_cost_visible}
+              onChange={handleProfileChange}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+            />
+            <span className="text-sm font-medium">Cost Visible</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
+            <input
+              type="checkbox"
+              name="is_inactive"
+              checked={formData.profile.is_inactive}
+              onChange={handleProfileChange}
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary"
+            />
+            <span className="text-sm font-medium">Mark as Inactive</span>
           </label>
         </div>
       </div>
 
-      <div className="border-t pt-4 mt-2">
-        <h3 className="text-sm font-bold mb-3">Data Visibility Mapping</h3>
-        <p className="text-xs text-muted-foreground mb-3">
-          Map user access to security dimensions. Hold Command (Mac) or Ctrl
-          (Windows) to select multiple entries.
+      <div className="rounded-lg border bg-card p-4">
+        <h3 className="mb-2 text-sm font-semibold">Data Visibility Mapping</h3>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Select allowed regions, product groups, and customer groups. Use
+          Command/Ctrl for multi-select.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <label className="text-sm font-medium">Regions</label>
             <select
@@ -369,6 +384,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
               ))}
             </select>
           </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Product Groups</label>
             <select
@@ -393,6 +409,7 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
               ))}
             </select>
           </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Customer Groups</label>
             <select
@@ -420,16 +437,24 @@ const UserManageForm: React.FC<UserManageFormProps> = ({
         </div>
       </div>
 
-      <div className="flex justify-end space-x-2 pt-4">
+      <div className="sticky bottom-0 flex justify-end gap-2 border-t bg-background/95 pb-1 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={isSubmitting}
-          className={`${isSubmitting ? "cursor-not-allowed bg-gray-500 hover:bg-gray-600" : ""}`}
+          className={
+            isSubmitting
+              ? "cursor-not-allowed bg-gray-500 hover:bg-gray-600"
+              : ""
+          }
         >
-          {isSubmitting ? "Submitting..." : "Submit"}
+          {isSubmitting
+            ? "Saving..."
+            : initialData
+              ? "Update User"
+              : "Create User"}
         </Button>
       </div>
     </form>

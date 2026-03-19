@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Search, UserCog } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FilterX, PlusCircle, Search, UserCog, Users } from "lucide-react";
 import { SimpleDialog } from "@/components/ui/simple-dialog";
 import UserManageForm from "@/components/public/UserManageForm";
 import type { UserFormData, User } from "@/types/user";
@@ -143,11 +151,9 @@ const mapApiUserToUi = (raw: any): User => {
 
 const buildUserPayload = (formData: UserFormData, isUpdate = false) => {
   const usernameFromEmail = formData.email.split("@")[0] || "user";
-  const selectedRoleIds = Array.isArray(formData.role_ids)
-    ? formData.role_ids
-    : formData.role_id
-      ? [formData.role_id]
-      : [];
+  const selectedRoleId =
+    formData.role_id ||
+    (Array.isArray(formData.role_ids) ? formData.role_ids[0] : undefined);
 
   return {
     username: usernameFromEmail,
@@ -158,7 +164,7 @@ const buildUserPayload = (formData: UserFormData, isUpdate = false) => {
       ? { password_confirmation: formData.password }
       : {}),
     auth_type: "internal",
-    role_ids: selectedRoleIds,
+    role_ids: selectedRoleId ? [selectedRoleId] : [],
     is_active: !formData.profile.is_inactive,
     visibility_flags: {
       see_cost: formData.profile.is_cost_visible,
@@ -285,17 +291,15 @@ const ManageUser: React.FC = () => {
     userId: string | number,
     formData: UserFormData,
   ) => {
-    const selectedRoleIds = Array.isArray(formData.role_ids)
-      ? formData.role_ids
-      : formData.role_id
-        ? [formData.role_id]
-        : [];
+    const selectedRoleId =
+      formData.role_id ||
+      (Array.isArray(formData.role_ids) ? formData.role_ids[0] : undefined);
 
-    if (selectedRoleIds.length === 0) return;
+    if (!selectedRoleId) return;
 
     await assignUserRole({
       user_id: userId,
-      role_ids: selectedRoleIds,
+      role_ids: [selectedRoleId],
     });
   };
 
@@ -437,20 +441,21 @@ const ManageUser: React.FC = () => {
       userSecurityData || userMappingsData,
     );
 
+    const primaryRoleId =
+      typeof editingUser.role_id === "number"
+        ? editingUser.role_id
+        : typeof editingUser.role_id === "string" && editingUser.role_id
+          ? parseInt(editingUser.role_id, 10)
+          : Array.isArray(editingUser.role_ids) &&
+              editingUser.role_ids.length > 0
+            ? editingUser.role_ids[0]
+            : undefined;
+
     return {
       email: editingUser.email,
       user_type: editingUser.user_type,
-      role_id:
-        typeof editingUser.role_id === "string"
-          ? parseInt(editingUser.role_id)
-          : editingUser.role_id,
-      role_ids: Array.isArray(editingUser.role_ids)
-        ? editingUser.role_ids
-        : typeof editingUser.role_id === "number"
-          ? [editingUser.role_id]
-          : typeof editingUser.role_id === "string" && editingUser.role_id
-            ? [parseInt(editingUser.role_id)]
-            : [],
+      role_id: primaryRoleId,
+      role_ids: primaryRoleId ? [primaryRoleId] : [],
       profile: editingUser.profile
         ? { ...defaultProfile, ...editingUser.profile }
         : defaultProfile,
@@ -458,44 +463,101 @@ const ManageUser: React.FC = () => {
     };
   };
 
+  const activeCount = users.filter((user) => !user.profile?.is_inactive).length;
+  const inactiveCount = users.length - activeCount;
+  const matchingCount = filteredUsers.length;
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
-            <UserCog className="h-8 w-8" />
-            User Management
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage user access and permissions.
-          </p>
-        </div>
-        <Button onClick={handleCreateUser} className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Create New User
-        </Button>
-      </div>
+      <Card className="border-primary/20 bg-linear-to-r from-primary/5 via-background to-background">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
+                <UserCog className="h-8 w-8" />
+                User Management
+              </CardTitle>
+              <CardDescription className="mt-2 text-sm">
+                Manage user access, assign one role per user, and control data
+                visibility.
+              </CardDescription>
+            </div>
+            <Button
+              onClick={handleCreateUser}
+              className="gap-2 self-start sm:self-auto"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Create New User
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Total Users
+              </p>
+              <p className="mt-1 text-2xl font-semibold flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                {users.length}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Active
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-emerald-600">
+                {activeCount}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Inactive
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-rose-600">
+                {inactiveCount}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center">
-        <div className="relative w-full sm:w-75">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder="Search users by name or email..."
-            className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-center">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input
+                type="search"
+                placeholder="Search users by name or email..."
+                className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <select
+              className="h-10 w-full sm:w-44 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <Button variant="outline" onClick={clearFilters} className="gap-2">
+              <FilterX className="h-4 w-4" />
+              Clear
+            </Button>
+          </div>
+          <Badge variant="secondary" className="self-start lg:self-auto">
+            {matchingCount} matching user{matchingCount === 1 ? "" : "s"}
+          </Badge>
         </div>
-        <select
-          className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
       </div>
 
       <UserTable
