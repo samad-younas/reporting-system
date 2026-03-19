@@ -28,11 +28,6 @@ type RoleRecord = {
   user_count?: number;
 };
 
-type UserOption = {
-  id: number;
-  name: string;
-};
-
 const normalizePermissions = (raw: unknown): string[] => {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -67,10 +62,6 @@ const ManageRoles: React.FC = () => {
   const [editingRole, setEditingRole] = useState<RoleRecord | null>(null);
   const [deleteRole, setDeleteRole] = useState<RoleRecord | null>(null);
   const [permissionSearch, setPermissionSearch] = useState("");
-  const [assignUserId, setAssignUserId] = useState("");
-  const [assignRoleIds, setAssignRoleIds] = useState<string[]>([]);
-  const [assignStartDate, setAssignStartDate] = useState("");
-  const [assignEndDate, setAssignEndDate] = useState("");
 
   const [formData, setFormData] = useState({
     role_name: "",
@@ -99,11 +90,6 @@ const ManageRoles: React.FC = () => {
     isAuth: true,
   });
 
-  const { data: usersData, isPending: usersLoading } = useFetch({
-    endpoint: "api/users",
-    isAuth: true,
-  });
-
   const { isPending: creating, mutateAsync: createRole } = useSubmit({
     method: "POST",
     endpoint: "api/roles",
@@ -119,12 +105,6 @@ const ManageRoles: React.FC = () => {
   const { isPending: deleting, mutateAsync: removeRole } = useSubmit({
     method: "DELETE",
     endpoint: (data: any) => `api/roles/${data.id}`,
-    isAuth: true,
-  });
-
-  const { isPending: assigning, mutateAsync: assignUserRoles } = useSubmit({
-    method: "POST",
-    endpoint: "api/roles/assign-user",
     isAuth: true,
   });
 
@@ -145,26 +125,6 @@ const ManageRoles: React.FC = () => {
       user_count: Number(role.user_count || 0),
     })) as RoleRecord[];
   }, [rolesData]);
-
-  const users = useMemo(() => {
-    const list = Array.isArray(usersData?.data)
-      ? usersData.data
-      : Array.isArray(usersData)
-        ? usersData
-        : [];
-
-    return list
-      .map((user: any) => ({
-        id: Number(user?.id),
-        name:
-          user?.name ||
-          user?.display_name ||
-          user?.username ||
-          user?.email ||
-          `User ${user?.id}`,
-      }))
-      .filter((user: UserOption) => Number.isFinite(user.id)) as UserOption[];
-  }, [usersData]);
 
   const permissionKeys = useMemo(() => {
     const list = Array.isArray(permissionKeysData?.data)
@@ -272,50 +232,6 @@ const ManageRoles: React.FC = () => {
       setIsModalOpen(false);
       await refetchRoles();
       await refetchPermissionKeys();
-    } catch {
-      // useSubmit handles error toast.
-    }
-  };
-
-  const handleAssignRoles = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const userIdNum = Number(assignUserId);
-    if (!Number.isFinite(userIdNum)) {
-      toast.error("Please select a user.");
-      return;
-    }
-
-    const roleIds = Array.from(
-      new Set(
-        assignRoleIds
-          .map((id) => Number(id))
-          .filter((id) => Number.isFinite(id)),
-      ),
-    );
-
-    if (roleIds.length === 0) {
-      toast.error("Please select at least one role.");
-      return;
-    }
-
-    if (assignStartDate && assignEndDate && assignEndDate < assignStartDate) {
-      toast.error("End date cannot be earlier than start date.");
-      return;
-    }
-
-    try {
-      await assignUserRoles({
-        user_id: userIdNum,
-        role_ids: roleIds,
-        ...(assignStartDate ? { start_date: assignStartDate } : {}),
-        ...(assignEndDate ? { end_date: assignEndDate } : {}),
-      });
-      toast.success("Roles assigned successfully.");
-      setAssignRoleIds([]);
-      setAssignStartDate("");
-      setAssignEndDate("");
-      await refetchRoles();
     } catch {
       // useSubmit handles error toast.
     }
@@ -458,104 +374,6 @@ const ManageRoles: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm border border-border/70">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl">Assign Roles To User</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            This syncs roles and replaces all current roles for the selected
-            user.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={handleAssignRoles}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="assign_user">User</Label>
-              <select
-                id="assign_user"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={assignUserId}
-                onChange={(e) => setAssignUserId(e.target.value)}
-                required
-                disabled={usersLoading || assigning}
-              >
-                <option value="">Select user</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="assign_roles">Roles</Label>
-              <select
-                id="assign_roles"
-                className="flex min-h-36 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={assignRoleIds}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions).map(
-                    (option) => option.value,
-                  );
-                  setAssignRoleIds(selected);
-                }}
-                multiple
-                disabled={assigning}
-              >
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.role_name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-muted-foreground">
-                Hold Command on macOS or Ctrl on Windows to select multiple
-                roles.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assign_start_date">Start Date (optional)</Label>
-              <Input
-                id="assign_start_date"
-                type="date"
-                value={assignStartDate}
-                onChange={(e) => setAssignStartDate(e.target.value)}
-                disabled={assigning}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assign_end_date">End Date (optional)</Label>
-              <Input
-                id="assign_end_date"
-                type="date"
-                value={assignEndDate}
-                onChange={(e) => setAssignEndDate(e.target.value)}
-                disabled={assigning}
-              />
-            </div>
-
-            <div className="md:col-span-2 flex justify-end">
-              <Button
-                type="submit"
-                disabled={
-                  assigning ||
-                  usersLoading ||
-                  !assignUserId ||
-                  assignRoleIds.length === 0
-                }
-              >
-                {assigning ? "Saving..." : "Assign Roles"}
-              </Button>
-            </div>
-          </form>
         </CardContent>
       </Card>
 
