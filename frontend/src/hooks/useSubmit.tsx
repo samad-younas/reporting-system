@@ -16,6 +16,27 @@ export const useSubmit = ({
 }: UseSubmitParams) => {
   const { token } = useSelector((state: any) => state.auth);
 
+  const getErrorMessage = (resData: any): string => {
+    if (!resData) return "Submission failed";
+    if (typeof resData?.message === "string" && resData.message.trim()) {
+      return resData.message;
+    }
+
+    const errors = resData?.errors;
+    if (errors && typeof errors === "object") {
+      const firstKey = Object.keys(errors)[0];
+      const firstVal = firstKey ? errors[firstKey] : null;
+      if (Array.isArray(firstVal) && firstVal.length > 0) {
+        return String(firstVal[0]);
+      }
+      if (typeof firstVal === "string" && firstVal.trim()) {
+        return firstVal;
+      }
+    }
+
+    return "Submission failed";
+  };
+
   const parseResponseBody = (rawBody: string) => {
     if (!rawBody) return null;
     try {
@@ -33,7 +54,7 @@ export const useSubmit = ({
         method: method,
         headers: {
           "Content-Type": "application/json",
-          ...(isAuth && { Authorization: `Bearer ${token}` }),
+          ...(isAuth && token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(data),
       });
@@ -42,7 +63,7 @@ export const useSubmit = ({
       const res_data = parseResponseBody(rawBody);
 
       if (!response.ok) {
-        const message = res_data?.message || "Submission failed";
+        const message = getErrorMessage(res_data);
         toast.error(message);
         throw new Error(message);
       }
