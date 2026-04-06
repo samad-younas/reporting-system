@@ -95,6 +95,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // DELETE /api/users/{id}
         Route::delete('/{id}', [UserController::class, 'destroy'])->middleware('permission:users.manage');
 
+        Route::get('/get-data', [UserController::class, 'getData']);
+
         // POST /api/users/{id}/toggle-status
         // Payload: { "is_active": true }
         Route::post('/{id}/toggle-status', [UserController::class, 'toggleStatus'])->middleware('permission:users.manage');

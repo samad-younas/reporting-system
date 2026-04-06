@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Region;
 use App\Models\SecurityMapping;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -303,5 +304,90 @@ class UserController extends Controller
                 'is_allow'        => $m->is_allow,
             ])->values(),
         ];
+    }
+
+    public function getData(Request $request)
+    {
+        $parentId = $request->input('parent_id');
+        $type = $request->input('type'); // country, region, state, city, department, sales_rep
+        
+        if (!$parentId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'parent_id is required'
+            ], 400);
+        }
+        
+        if (!$type) {
+            return response()->json([
+                'success' => false,
+                'message' => 'type is required (country, region, state, city, department, sales_rep)'
+            ], 400);
+        }
+        
+        $children = collect(); // Initialize empty collection
+        
+        switch ($type) {
+            case 'country':
+                // Give me list of countries where region_type = country
+                $children = Region::where('region_type', 'country')
+                    ->where('is_active', 1)
+                    ->get();
+                break;
+                
+            case 'region':
+                // Give me list of regions where region_type = region AND parent_region_id = parentId
+                $children = Region::where('region_type', 'region')
+                    ->where('parent_region_id', $parentId)
+                    ->where('is_active', 1)
+                    ->get();
+                break;
+                
+            case 'state':
+                // Give me list of states where region_type = state AND parent_region_id = parentId
+                $children = Region::where('region_type', 'state')
+                    ->where('parent_region_id', $parentId)
+                    ->where('is_active', 1)
+                    ->get();
+                break;
+                
+            case 'city':
+                // Give me list of cities where region_type = city AND parent_region_id = parentId
+                $children = Region::where('region_type', 'city')
+                    ->where('parent_region_id', $parentId)
+                    ->where('is_active', 1)
+                    ->get();
+                break;
+                
+            case 'department':
+                // Give me list of departments where region_type = department AND parent_region_id = parentId
+                $children = Region::where('region_type', 'department')
+                    ->where('parent_region_id', $parentId)
+                    ->where('is_active', 1)
+                    ->get();
+                break;
+                
+            case 'sales_rep':
+                // Give me list of sales_reps where region_type = sales_rep AND parent_region_id = parentId
+                $children = Region::where('region_type', 'sales_rep')
+                    ->where('parent_region_id', $parentId)
+                    ->where('is_active', 1)
+                    ->get();
+                break;
+                
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid type. Allowed types: country, region, state, city, department, sales_rep'
+                ], 400);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'type' => $type,
+            'parent_id' => $parentId,
+            'data' => $children,
+            'total' => $children->count()
+        ]);
     }
 }
